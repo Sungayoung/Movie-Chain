@@ -11,3 +11,5 @@ class User(AbstractUser):
     followers = models.ManyToManyField('self', symmetrical=False, related_name='followings')
     like_genres = models.ManyToManyField(Genre, related_name='genre_like_users')
     personal_movies = models.ManyToManyField(Movie, related_name='personal_movie_users')
+    bookmark_movies = models.ManyToManyField(Movie, related_name='bookmark_users')
+    favorite_movies = models.ManyToManyField(Movie, related_name='favorite_users')

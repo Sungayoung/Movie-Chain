@@ -45,6 +45,7 @@ class Review(models.Model):
     rank = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    like_users = models.ManyToManyField(get_user_model(), related_name='like_reviews')
 
 
 # 리뷰댓글
