@@ -1,6 +1,6 @@
 from re import T
 from rest_framework import serializers
-from ..models import Review
+from movies.models import Review
 from accounts.models import User
 
 
