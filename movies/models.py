@@ -28,6 +28,7 @@ class Hashtag(models.Model):
 # 영화
 class Movie(models.Model):
     pk = models.PositiveIntegerField()
+    title = models.TextField()
     overview = models.TextField()
     release_date = models.DateField()
     genre = models.ManyToManyField(Genre, related_name='genre_movies')
@@ -55,3 +56,5 @@ class Comment(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE)
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     content = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True) 
