@@ -1,6 +1,6 @@
 from django.db.models import fields
 from rest_framework import serializers
-from ..models import Movie, Actor, Crew, Review, Genre, Hashtag
+from movies.models import Movie, Actor, Crew, Review, Genre, Hashtag
 
 # 전체 리스트를 보여주는 Serializer
 class MovieListSerializer(serializers.ModelSerializer):

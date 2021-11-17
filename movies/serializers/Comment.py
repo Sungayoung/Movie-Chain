@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import Comment
+from movies.models import Comment
 from accounts.models import User
 
 # 댓글보기를 누를 경우에만 리뷰댓글을 불러와야 하므로 serializer 분리
