@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import os
 
 import datetime
 from pathlib import Path
@@ -154,6 +155,7 @@ REST_FRAMEWORK = {
     ),
 }
 
+TMDB_API_KEY = os.environ.get('TMDB_API_KEY')
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
 }
