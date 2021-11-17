@@ -4,7 +4,7 @@ from ..movies.models import Movie, Genre
 
 
 class User(AbstractUser):
-    email = models.EmailField(_('email address'), blank=False)
+    email = models.EmailField(blank=False)
     nickname = models.CharField(max_length=20)
     birth = models.DateField()
     profile_img = models.ImageField()
