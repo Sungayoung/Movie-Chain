@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 class Actor(models.Model):
     pk = models.PositiveIntegerField()
     name = models.CharField(max_length=100)
+    profile_path = models.TextField()
 
 # 장르
 class Genre(models.Model):
@@ -17,6 +18,7 @@ class Crew(models.Model):
     pk = models.PositiveIntegerField()
     name = models.CharField(max_length=100)
     job = models.CharField(max_length=100)
+    profile_path = models.TextField()
 
 # 해쉬태그
 class Hashtag(models.Model):
@@ -35,7 +37,7 @@ class Movie(models.Model):
     crews = models.ManyToManyField(Crew, related_name='crew_movies')
     keyword = models.ManyToManyField(Hashtag, related_name='hashtag_movies')
     poster_path = models.TextField()
-    video_id = models.CharField(max_length=100)
+    video_id = models.TextField()
 
 # 리뷰
 class Review(models.Model):
