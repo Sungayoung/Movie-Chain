@@ -9,6 +9,13 @@ export default new Vuex.Store({
   mutations: {},
   actions: {
     getMovieList: function ({ commit }, params) {
+      /**
+       * params: {
+       *  filter_by : all, actor, crew, keyword, genre
+       *  filter_id : actor/crew/keyword/genre's id
+       *  order_by : release_date, vote_average, title, -release_date, -vote_average, -title
+       * }
+       */
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
