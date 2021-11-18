@@ -8,10 +8,17 @@ class Actor(models.Model):
     name = models.CharField(max_length=100)
     profile_path = models.TextField()
 
+    def __str__(self):
+        return f'[{self.id}]{self.name}'
+    
+
 # 장르
 class Genre(models.Model):
     id = models.PositiveIntegerField()
     name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f'[{self.id}]{self.name}'
 
 # 제작진
 class Crew(models.Model):
@@ -20,10 +27,16 @@ class Crew(models.Model):
     job = models.CharField(max_length=100)
     profile_path = models.TextField()
 
+    def __str__(self):
+        return f'[{self.id}]{self.name}'
+
 # 해쉬태그
 class Hashtag(models.Model):
     id = models.PositiveIntegerField()
     name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f'[{self.id}]{self.name}'
 
 # 영화
 class Movie(models.Model):
@@ -40,6 +53,9 @@ class Movie(models.Model):
     poster_path = models.TextField()
     video_id = models.TextField()
 
+    def __str__(self):
+        return f'[{self.id}]{self.title}'
+
 # 리뷰
 class Review(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
@@ -50,6 +66,8 @@ class Review(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_reviews')
 
+    def __str__(self):
+        return f'[{self.pk}]{self.user}'
 
 # 리뷰댓글
 class Comment(models.Model):
@@ -58,3 +76,6 @@ class Comment(models.Model):
     content = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True) 
+
+    def __str__(self):
+        return f'[{self.pk}]{self.user}'

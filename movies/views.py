@@ -1,6 +1,4 @@
-from re import T
 from django.shortcuts import get_list_or_404, get_object_or_404
-from django.http import response
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -42,8 +40,8 @@ def get_actor_list(request, movie_pk):
 @api_view(['GET'])
 def get_crew_list(request, movie_pk):
     movie = get_object_or_404(Movie, pk=movie_pk)   # 위와 동일
-    crew = Actor.objects.filter(pk__in=movie.crews)
-    serializer = ActorSerializer(crew, many=True)
+    crew = Crew.objects.filter(pk__in=movie.crews)
+    serializer = CrewSerializer(crew, many=True)
     return Response(serializer.data)
 
 
