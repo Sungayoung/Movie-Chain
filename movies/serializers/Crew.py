@@ -6,4 +6,4 @@ class CrewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Crew
-        fields = ('pk', 'name', 'job', 'profile_path')
+        fields = ('id', 'name', 'job', 'profile_path')

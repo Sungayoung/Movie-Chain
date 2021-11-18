@@ -7,7 +7,7 @@ class MovieListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Movie
-        fields = ('pk', 'title', 'overview', 'poster_path')
+        fields = ('id', 'title', 'overview', 'poster_path')
 
 # 상세 페이지를 보여주는 Serializer
 class MovieSerializer(serializers.ModelSerializer):
@@ -39,5 +39,5 @@ class MovieSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Movie
-        fields = ('pk', 'title', 'overview', 'release_date', 'genre',
+        fields = ('id', 'title', 'overview', 'release_date', 'genre',
         'vote_count', 'vote_average', 'actors', 'crews', 'keyword', 'poster_path', 'video_id')
