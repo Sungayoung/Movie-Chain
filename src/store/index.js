@@ -9,11 +9,18 @@ export default new Vuex.Store({
   mutations: {},
   actions: {
     getMovieList: function ({ commit }, params) {
+      /**
+       * params: {
+       *  filter_by : all, actor, crew, keyword, genre
+       *  filter_id : actor/crew/keyword/genre's id
+       *  order_by : release_date, vote_average, title, -release_date, -vote_average, -title
+       * }
+       */
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          method: "GET",
+          method: "get",
           url: `${process.env.VUE_APP_MCS_URL}/movies/`,
           headers: { Authorization: `JWT ${token}` },
           params,
@@ -33,7 +40,7 @@ export default new Vuex.Store({
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          method: "GET",
+          method: "get",
           url: `${process.env.VUE_APP_MCS_URL}/movies/search/`,
           headers: { Authorization: `JWT ${token}` },
           params: {
@@ -54,8 +61,7 @@ export default new Vuex.Store({
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          method: "GET",
-
+          method: "get",
           url: `${process.env.VUE_APP_MCS_URL}/movies/${moviePk}/`,
           headers: { Authorization: `JWT ${token}` },
         })
@@ -72,7 +78,7 @@ export default new Vuex.Store({
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          method: "GET",
+          method: "get",
           url: `${process.env.VUE_APP_MCS_URL}/movies/${moviePk}/actors/`,
           headers: { Authorization: `JWT ${token}` },
         })
@@ -89,7 +95,7 @@ export default new Vuex.Store({
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          method: "GET",
+          method: "get",
           url: `${process.env.VUE_APP_MCS_URL}/movies/${moviePk}/crews/`,
           headers: { Authorization: `JWT ${token}` },
         })
@@ -199,19 +205,19 @@ export default new Vuex.Store({
           params,
         })
           .then((res) => {
-            return res.data;
+            resolve(res.data);
           })
           .catch((err) => {
-            return err.data;
+            reject(err.data);
           });
       });
     },
-    updateComment: function ({ commit }, review_pk, params) {
+    updateComment: function ({ commit }, comment_pk, params) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${review_pk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/comments/${comment_pk}/`,
           headers: { Authorization: `JWT ${token}` },
           method: "put",
           params,
@@ -224,15 +230,33 @@ export default new Vuex.Store({
           });
       });
     },
-    createComment: function ({ commit }, review_pk, params) {
+    deleteComment: function ({ commit }, comment_pk) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${review_pk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/comments/${comment_pk}/`,
           headers: { Authorization: `JWT ${token}` },
-          method: "post",
-          params,
+          method: "delete",
+        })
+          .then((res) => {
+            resolve(res.data);
+          })
+          .catch((err) => {
+            reject(err.data);
+          });
+      });
+    },
+  },
+  getters: {
+    getMovieDetailGetters: function ({ commit }, moviePk) {
+      commit;
+      const token = localStorage.getItem("jwt");
+      return new Promise((resolve, reject) => {
+        axios({
+          method: "get",
+          url: `${process.env.VUE_APP_MCS_URL}/movies/${moviePk}/`,
+          headers: { Authorization: `JWT ${token}` },
         })
           .then((res) => {
             resolve(res.data);
