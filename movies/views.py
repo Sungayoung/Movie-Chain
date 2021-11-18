@@ -1,3 +1,4 @@
+from django.db.models.query_utils import Q
 from django.shortcuts import get_list_or_404, get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -17,7 +18,7 @@ def get_movie_list(request):
 
     # 정렬 기준 설정, 기본값 : id 큰 순서
     order = request.GET.get('order_by') if request.GET.get('order_by') else '-id'
-    print()
+
     # 기준 별로 movies_list를 뽑음.
     filter_by = request.GET.get('filter_by')
     filter_id = request.GET.get('filter_id')
@@ -54,6 +55,29 @@ def get_movie_list(request):
         
     serializer = MovieListSerializer(movies, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+# 영화 검색 기능
+@api_view(['GET'])
+def search(request):
+    query = request.GET.get('query')
+    if not query:
+        return Response({'error' : 'query값이 올바르지 않습니다'})
+    
+    movies = Movie.objects.filter(title__icontains=query)
+    actors = Actor.objects.filter(name__icontains=query)
+    crews = Crew.objects.filter(name__icontains=query)
+    for actor in actors:
+        movies.union(actor.actor_movies.all())
+    
+    for crew in crews:
+        movies.union(crew.crew_movies.all())
+
+    data = {
+        'movies': MovieListSerializer(movies, many=True).data,
+        'actors': ActorSerializer(actors, many=True).data,
+        'crews': CrewSerializer(crews, many=True).data
+    }
+    return Response(data, status=status.HTTP_200_OK)
 
 
 # 영화 상세페이지 요청
