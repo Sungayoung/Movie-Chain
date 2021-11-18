@@ -33,6 +33,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # CORS
+    'corsheaders.middleware.CorsMiddleware',
+
     # app
     'accounts',
     'movies',
@@ -156,6 +159,15 @@ REST_FRAMEWORK = {
 }
 
 TMDB_API_KEY = os.environ.get('TMDB_API_KEY')
+
+# jwt유효기간 설정 : 1일
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
 }
+
+# CORS설정
+CORS_ORIGIN_WHITELIST = [
+    'http://192.168.0.100:8080',
+    'http://localhost:8080'
+]
+CORS_ALLOW_CREDENTIALS = True
