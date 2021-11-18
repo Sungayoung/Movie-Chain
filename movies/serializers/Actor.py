@@ -6,4 +6,4 @@ class ActorSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Actor
-        fields = ('pk', 'name', 'profile_path')
+        fields = ('id', 'name', 'profile_path')
