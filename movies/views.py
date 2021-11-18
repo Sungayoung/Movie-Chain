@@ -247,14 +247,6 @@ class GetMovie:
             if video['site'] == 'YouTube':
                 return video['key']
 
-
-
-def index(request):
-    _movie = GetMovie()
-    movie_list = _movie.save_search_result('harry')
-    save_movie(movie_list, 'search')
-
-
 def save_movie(info_list, save_type):
     _movie = GetMovie()
     if save_type == 'search':
