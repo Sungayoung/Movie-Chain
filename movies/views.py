@@ -3,11 +3,11 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import *
-from serializers.Actor import ActorSerializer
-from serializers.Comment import CommentSerializer
-from serializers.Crew import CrewSerializer
-from serializers.Movie import MovieListSerializer, MovieSerializer
-from serializers.Review import ReviewSerializer
+from .serializers.Actor import ActorSerializer
+from .serializers.Comment import CommentSerializer
+from .serializers.Crew import CrewSerializer
+from .serializers.Movie import MovieListSerializer, MovieSerializer
+from .serializers.Review import ReviewSerializer
 
 # Create your views here.
 
