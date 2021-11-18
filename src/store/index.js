@@ -56,13 +56,13 @@ export default new Vuex.Store({
           });
       });
     },
-    getMovieDetail: function ({ commit }, moviePk) {
+    getMovieDetail: function ({ commit }, movieId) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
           method: "get",
-          url: `${process.env.VUE_APP_MCS_URL}/movies/${moviePk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/${movieId}/`,
           headers: { Authorization: `JWT ${token}` },
         })
           .then((res) => {
@@ -73,13 +73,13 @@ export default new Vuex.Store({
           });
       });
     },
-    getActorList: function ({ commit }, moviePk) {
+    getActorList: function ({ commit }, movieId) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
           method: "get",
-          url: `${process.env.VUE_APP_MCS_URL}/movies/${moviePk}/actors/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/${movieId}/actors/`,
           headers: { Authorization: `JWT ${token}` },
         })
           .then((res) => {
@@ -90,13 +90,13 @@ export default new Vuex.Store({
           });
       });
     },
-    getCrewList: function ({ commit }, moviePk) {
+    getCrewList: function ({ commit }, movieId) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
           method: "get",
-          url: `${process.env.VUE_APP_MCS_URL}/movies/${moviePk}/crews/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/${movieId}/crews/`,
           headers: { Authorization: `JWT ${token}` },
         })
           .then((res) => {
@@ -107,12 +107,12 @@ export default new Vuex.Store({
           });
       });
     },
-    getReview: function ({ commit }, movie_pk) {
+    getReview: function ({ commit }, movieId) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/${movie_pk}/reviews/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/${movieId}/reviews/`,
           headers: { Authorization: `JWT ${token}` },
           method: "get",
         })
@@ -124,15 +124,16 @@ export default new Vuex.Store({
           });
       });
     },
-    createReview: function ({ commit }, movie_pk, params) {
+    createReview: function ({ commit }, data) {
       commit;
+      console.log(data)
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/${movie_pk}/reviews/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/${data.movieId}/reviews/`,
           headers: { Authorization: `JWT ${token}` },
-          method: "get",
-          params,
+          method: "post",
+          data: data.params,
         })
           .then((res) => {
             resolve(res.data);
@@ -142,15 +143,15 @@ export default new Vuex.Store({
           });
       });
     },
-    updateReview: function ({ commit }, review_pk, params) {
+    updateReview: function ({ commit }, data) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${review_pk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${data.reviewId}/`,
           headers: { Authorization: `JWT ${token}` },
           method: "put",
-          params,
+          data: data.params,
         })
           .then((res) => {
             resolve(res.data);
@@ -160,12 +161,12 @@ export default new Vuex.Store({
           });
       });
     },
-    deleteReview: function ({ commit }, review_pk) {
+    deleteReview: function ({ commit }, reviewId) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${review_pk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${reviewId}/`,
           headers: { Authorization: `JWT ${token}` },
           method: "delete",
         })
@@ -177,12 +178,12 @@ export default new Vuex.Store({
           });
       });
     },
-    getComment: function ({ commit }, review_pk) {
+    getComment: function ({ commit }, reviewId) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${review_pk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${reviewId}/`,
           headers: { Authorization: `JWT ${token}` },
           method: "get",
         })
@@ -194,15 +195,15 @@ export default new Vuex.Store({
           });
       });
     },
-    createComment: function ({ commit }, review_pk, params) {
+    createComment: function ({ commit }, data) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${review_pk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/reviews/${data.reviewId}/`,
           headers: { Authorization: `JWT ${token}` },
           method: "post",
-          params,
+          data: data.params,
         })
           .then((res) => {
             resolve(res.data);
@@ -212,15 +213,15 @@ export default new Vuex.Store({
           });
       });
     },
-    updateComment: function ({ commit }, comment_pk, params) {
+    updateComment: function ({ commit }, data) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/comments/${comment_pk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/comments/${data.commentId}/`,
           headers: { Authorization: `JWT ${token}` },
           method: "put",
-          params,
+          data: data.params,
         })
           .then((res) => {
             resolve(res.data);
@@ -230,12 +231,12 @@ export default new Vuex.Store({
           });
       });
     },
-    deleteComment: function ({ commit }, comment_pk) {
+    deleteComment: function ({ commit }, commentId) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
-          url: `${process.env.VUE_APP_MCS_URL}/movies/comments/${comment_pk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/comments/${commentId}/`,
           headers: { Authorization: `JWT ${token}` },
           method: "delete",
         })
@@ -249,13 +250,13 @@ export default new Vuex.Store({
     },
   },
   getters: {
-    getMovieDetailGetters: function ({ commit }, moviePk) {
+    getMovieDetailGetters: function ({ commit }, movieId) {
       commit;
       const token = localStorage.getItem("jwt");
       return new Promise((resolve, reject) => {
         axios({
           method: "get",
-          url: `${process.env.VUE_APP_MCS_URL}/movies/${moviePk}/`,
+          url: `${process.env.VUE_APP_MCS_URL}/movies/${movieId}/`,
           headers: { Authorization: `JWT ${token}` },
         })
           .then((res) => {
