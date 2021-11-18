@@ -1,14 +1,14 @@
 <template>
   <div>
-    <button @click="getMovie()">영화불러오기</button>
+    <Review/>
     {{ movie }}
-
     <hr />
   </div>
 </template>
 
 <script>
 import { mapActions } from "vuex";
+import Review from "./Review.vue"
 
 export default {
   name: "MovieDetail",
@@ -17,7 +17,13 @@ export default {
       movie: null,
     };
   },
+  components: {
+    Review,
+  },
   props: { movieId: Number },
+  mounted: function () {
+    this.getMovie();
+  },
   methods: {
     ...mapActions(["getMovieDetail"]),
     getMovie: function () {
@@ -28,9 +34,6 @@ export default {
         .catch((err) => {
           console.log(err);
         });
-  },
-  mounted: function () {
-      this.getMovie()
     },
   },
 };

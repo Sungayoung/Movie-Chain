@@ -33,7 +33,7 @@ export default {
       }
       this.getMovieList(params)
         .then((res) => {
-          console.log(res);
+          // console.log(res);
           this.movies = res;
         })
         .catch((err) => {
