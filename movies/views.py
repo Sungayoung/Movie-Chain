@@ -1,4 +1,4 @@
-from django.db.models.query_utils import Q
+import requests
 from django.shortcuts import get_list_or_404, get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -63,20 +63,33 @@ def search(request):
     if not query:
         return Response({'error' : 'query값이 올바르지 않습니다'})
     
-    movies = Movie.objects.filter(title__icontains=query)
-    actors = Actor.objects.filter(name__icontains=query)
-    crews = Crew.objects.filter(name__icontains=query)
-    for actor in actors:
-        movies.union(actor.actor_movies.all())
-    
-    for crew in crews:
-        movies.union(crew.crew_movies.all())
+    # 영화 검색 함수
+    def search_movie():
+        movies = Movie.objects.filter(title__icontains=query)
+        actors = Actor.objects.filter(name__icontains=query)
+        crews = Crew.objects.filter(name__icontains=query)
+        for actor in actors:
+            movies.union(actor.actor_movies.all())
+        
+        for crew in crews:
+            movies.union(crew.crew_movies.all())
+        data = {
+            'movies': MovieListSerializer(movies, many=True).data,
+            'actors': ActorSerializer(actors, many=True).data,
+            'crews': CrewSerializer(crews, many=True).data
+        }
+        return data
 
-    data = {
-        'movies': MovieListSerializer(movies, many=True).data,
-        'actors': ActorSerializer(actors, many=True).data,
-        'crews': CrewSerializer(crews, many=True).data
-    }
+    data = search_movie()
+
+    # 검색결과가 없다면 TMDB에서 검색 진행 및 DB 저장 후 재 검색
+    if not (data.get('movies') or data.get('actors') or data.get('crews')):
+        _movie = GetMovie()
+        movie_list = _movie.save_search_result(query)
+        save_movie(movie_list, 'search')
+        data = search_movie()
+    
+    
     return Response(data, status=status.HTTP_200_OK)
 
 
@@ -161,3 +174,166 @@ def update_or_delete_comment(request, comment_pk):
     elif request.method == 'DELETE':
         comment.delete()
         return Response(data=f'{comment_pk}번 댓글 삭제', status=status.HTTP_204_NO_CONTENT)
+
+
+
+# 아래는 TMDB 에서 영화를 불러오기 위한 함수
+class GetMovie:
+
+    def __init__(self):
+
+        self.API_KEY = settings.TMDB_API_KEY
+        self.BASE_URL = 'https://api.themoviedb.org/3'
+
+    def save_movie_info(self, page_num):
+        result = []
+        url = f'{self.BASE_URL}/movie/popular'
+        for i in range(1, page_num+1):
+            params = {
+                'api_key': self.API_KEY,
+                'language': 'ko',
+                'page': i
+            }
+            res = requests.get(url, params=params).json().get('results')
+            result.extend(res)
+        
+        return result
+
+    def save_search_result(self, query):
+        url = f'{self.BASE_URL}/search/movie'
+        params = {
+            'api_key': self.API_KEY,
+            'query': query,
+            'language': 'ko',
+        }
+        res = requests.get(url, params=params).json().get('results')
+        return res
+
+    def save_credit_info(self, movie_id):
+        url = f'{self.BASE_URL}/movie/{movie_id}/credits'
+        params = {
+            'api_key': self.API_KEY,
+            'language': 'ko'
+        }
+        res = requests.get(url, params=params)
+        return res.json()
+
+
+    def save_keyword_info(self, movie_id):
+        url = f'{self.BASE_URL}/movie/{movie_id}/keywords'
+        params = {
+            'api_key': self.API_KEY,
+        }
+        res = requests.get(url, params=params)
+        return res.json().get('keywords')
+
+    def save_genre_info(self):
+        url = f'{self.BASE_URL}/genre/movie/list'
+        params = {
+            'api_key': self.API_KEY,
+            'language': 'ko'
+        }
+        res = requests.get(url, params=params)
+        return res.json().get('genres')
+
+    def get_video(self, movie_id):
+        url = f'{self.BASE_URL}/movie/{movie_id}/videos'
+        params = {
+            'api_key': self.API_KEY,
+            'language': 'ko',
+        }
+        res = requests.get(url, params=params).json()
+        for video in res['results']:
+            if video['site'] == 'YouTube':
+                return video['key']
+
+
+
+def index(request):
+    _movie = GetMovie()
+    movie_list = _movie.save_search_result('harry')
+    save_movie(movie_list, 'search')
+
+
+def save_movie(info_list, save_type):
+    _movie = GetMovie()
+    if save_type == 'search':
+        movie_list = []
+        for movie in info_list:
+            if not Movie.objects.filter(id=movie['id']).exists():
+                movie_list.append(movie)
+                    
+    else:
+        # 장르 리스트 저장
+        genres = _movie.save_genre_info()
+        for genre in genres:
+            g = Genre(id=genre['id'], name=genre['name'])
+            g.save()
+        movie_list = info_list
+
+    # 전체 영화 리스트를 돌면서 세부사항 저장
+    for movie in movie_list:
+        movie_id = movie['id']
+        print(movie_id)
+        m = Movie(
+            id = movie_id,
+            title = movie['title'],
+            overview = movie['overview'],
+            release_date = movie['release_date'],
+            vote_count = movie['vote_count'],
+            vote_average = movie['vote_average'],
+            poster_path = movie['poster_path'],
+            video_id = _movie.get_video(movie_id)
+        )
+        m.save()
+        # 장르 리스트에서 object를 찾아 추가
+        for genre_id in movie['genre_ids']:
+            m.genre.add(Genre.objects.get(id=genre_id))
+        
+
+        # cast, crew 정보 받아옴
+        credit = _movie.save_credit_info(movie_id)
+
+        for cast in credit.get('cast')[:10]:
+            cast_id = cast['id']
+
+            # 만약 Actor 테이블에 없다면 추가해줌
+            if not Actor.objects.filter(id=cast_id).exists():
+                a = Actor(
+                    id = cast['id'],
+                    name = cast['name'],
+                    profile_path = cast['profile_path']
+                )
+                a.save()
+            m.actors.add(Actor.objects.get(id=cast_id))
+
+        for crew in credit.get('crew'):
+            if crew['job'] == 'Director':
+
+                crew_id = crew['id']
+
+                # 만약 Crew 테이블에 없다면 추가해줌
+                if not Crew.objects.filter(id=crew_id).exists():
+                    c = Crew(
+                        id = crew['id'],
+                        name = crew['name'],
+                        job = crew['job'],
+                        profile_path = crew['profile_path'],
+                    )
+                    c.save()
+                m.crews.add(Crew.objects.get(id=crew_id))
+                break
+        
+        for keyword in _movie.save_keyword_info(movie_id):
+            keyword_id = keyword['id']
+
+            # 만약 Hashtag 테이블에 없다면 추가해줌
+            if not Hashtag.objects.filter(id=keyword['id']).exists():
+                h = Hashtag(
+                    id = keyword_id,
+                    name = keyword['name']
+                )
+                h.save()
+            m.keyword.add(Hashtag.objects.get(id=keyword_id))
+
+        m.save()
