@@ -6,6 +6,7 @@ charset-normalizer==2.0.7
 Django==3.2.6
 django-appconf==1.0.5
 django-bootstrap-v5==1.0.7
+django-cors-headers==3.10.0
 django-dotenv==1.4.2
 django-imagekit==4.1.0
 djangorestframework==3.12.4

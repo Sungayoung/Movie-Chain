@@ -9,7 +9,7 @@ class Actor(models.Model):
     profile_path = models.TextField(null=True)
 
     def __str__(self):
-        return f'[{self.id}]{self.name}'
+        return f'[{self.id}] {self.name}'
     
 
 # 장르
@@ -18,7 +18,7 @@ class Genre(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
-        return f'[{self.id}]{self.name}'
+        return f'[{self.id}] {self.name}'
 
 # 제작진
 class Crew(models.Model):
@@ -28,7 +28,7 @@ class Crew(models.Model):
     profile_path = models.TextField(null=True)
 
     def __str__(self):
-        return f'[{self.id}]{self.name}'
+        return f'[{self.id}] {self.name}'
 
 # 해쉬태그
 class Hashtag(models.Model):
@@ -36,7 +36,7 @@ class Hashtag(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
-        return f'[{self.id}]{self.name}'
+        return f'[{self.id}] {self.name}'
 
 # 영화
 class Movie(models.Model):
@@ -54,7 +54,7 @@ class Movie(models.Model):
     video_id = models.TextField(null=True)
 
     def __str__(self):
-        return f'[{self.id}]{self.title}'
+        return f'[{self.id}] {self.title}'
 
 # 리뷰
 class Review(models.Model):
@@ -67,7 +67,7 @@ class Review(models.Model):
     like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_reviews')
 
     def __str__(self):
-        return f'[{self.pk}]{self.user}'
+        return f'[{self.pk}] {self.user}'
 
 # 리뷰댓글
 class Comment(models.Model):
@@ -78,4 +78,4 @@ class Comment(models.Model):
     updated_at = models.DateTimeField(auto_now=True) 
 
     def __str__(self):
-        return f'[{self.pk}]{self.user}'
+        return f'[{self.pk}] {self.user}'

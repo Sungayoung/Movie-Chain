@@ -6,8 +6,8 @@ from movies.models import Movie, Genre
 class User(AbstractUser):
     email = models.EmailField(blank=False)
     nickname = models.CharField(max_length=20)
-    birth = models.DateField()
-    profile_img = models.ImageField()
+    birth = models.DateField(null=True)
+    profile_img = models.ImageField(null=True)
     followers = models.ManyToManyField('self', symmetrical=False, related_name='followings')
     like_genres = models.ManyToManyField(Genre, related_name='genre_like_users')
     personal_movies = models.ManyToManyField(Movie, related_name='personal_movie_users')
