@@ -249,24 +249,5 @@ export default new Vuex.Store({
       });
     },
   },
-  getters: {
-    getMovieDetailGetters: function ({ commit }, movieId) {
-      commit;
-      const token = localStorage.getItem("jwt");
-      return new Promise((resolve, reject) => {
-        axios({
-          method: "get",
-          url: `${process.env.VUE_APP_MCS_URL}/movies/${movieId}/`,
-          headers: { Authorization: `JWT ${token}` },
-        })
-          .then((res) => {
-            resolve(res.data);
-          })
-          .catch((err) => {
-            reject(err.data);
-          });
-      });
-    },
-  },
   modules: {},
 });
