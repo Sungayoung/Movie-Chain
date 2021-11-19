@@ -246,8 +246,6 @@ class GetMovie:
         for video in res['results']:
             if video['site'] == 'YouTube':
                 return video['key']
-<<<<<<< HEAD
-=======
     def get_people_detail(self, people_id):
         url = f'{self.BASE_URL}/person/{people_id}'
         params = {
@@ -263,7 +261,6 @@ def index(request):
     movie_list = _movie.save_movie_info(50)
     save_movie(movie_list, 'init')
 
->>>>>>> d9e277cfecd1265488f58d679e07609d27f71069
 
 def save_movie(info_list, save_type):
     _movie = GetMovie()
