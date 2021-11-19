@@ -8,5 +8,5 @@ urlpatterns = [
     path('signup/', views.signup),
     path('api-token-auth/', obtain_jwt_token),
     path('chatting/', views.chatting),
-    path('set-profile-image/', views.set_profile_image)
+    path('profile/', views.get_or_set_profile_image),
 ]

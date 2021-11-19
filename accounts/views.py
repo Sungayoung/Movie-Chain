@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from .models import Chatting
-from .serializers.User import SignupSerializer
+from .serializers.User import SignupSerializer, UserSerializer
 from .serializers.Chatting import ChattingSerializer
 
 
@@ -54,10 +54,15 @@ def chatting(request):
         serializer = ChattingSerializer(data)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-def set_profile_image(request):
-    img = request.FILES['files']
-    print(request.FILES['files'])
-    user = request.user
-    user.profile_img = img
-    user.save()
-    return Response({'img': img}, status=status.HTTP_201_CREATED)
+
+@api_view(['GET', 'POST'])
+def get_or_set_profile_image(request):
+    if request.method == 'GET':
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    elif request.method == 'POST':
+        img = request.FILES['files']
+        user = request.user
+        user.profile_img = img
+        user.save()
+        return Response({'img': '이미지 등록이 완료되었습니다.'}, status=status.HTTP_201_CREATED)
