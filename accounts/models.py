@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from movies.models import Movie, Genre, Actor, Crew
 
 def profile_image_path(instance, filename):
-    return f'images/profile/{instance.id}'
+    return f'images/profile/{instance.id}/{instance.id}.jpg'
 
 class User(AbstractUser):
     email = models.EmailField(blank=False)
@@ -17,7 +17,7 @@ class User(AbstractUser):
         processors=[Thumbnail(300, 400)],
         format="JPEG",
         options={'quality': 90},
-        upload_to=profile_image_path
+        upload_to=profile_image_path,
     )
     introduce_content = models.CharField(max_length=200, null=True)
     followers = models.ManyToManyField('self', symmetrical=False, related_name='followings')
