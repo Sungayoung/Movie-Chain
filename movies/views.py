@@ -188,7 +188,7 @@ class GetMovie:
     def save_movie_info(self, page_num):
         result = []
         url = f'{self.BASE_URL}/movie/popular'
-        for i in range(1, page_num+1):
+        for i in range(32, page_num+1):
             params = {
                 'api_key': self.API_KEY,
                 'language': 'ko',
@@ -246,6 +246,24 @@ class GetMovie:
         for video in res['results']:
             if video['site'] == 'YouTube':
                 return video['key']
+<<<<<<< HEAD
+=======
+    def get_people_detail(self, people_id):
+        url = f'{self.BASE_URL}/person/{people_id}'
+        params = {
+            'api_key': self.API_KEY,
+            'language': 'ko',
+        }
+        res = requests.get(url, params=params)
+        return res.json()
+
+
+def index(request):
+    _movie = GetMovie()
+    movie_list = _movie.save_movie_info(50)
+    save_movie(movie_list, 'init')
+
+>>>>>>> d9e277cfecd1265488f58d679e07609d27f71069
 
 def save_movie(info_list, save_type):
     _movie = GetMovie()
@@ -267,11 +285,14 @@ def save_movie(info_list, save_type):
     for movie in movie_list:
         movie_id = movie['id']
         print(movie_id)
+        release_date = movie.get('release_date')
+        if not release_date:
+            release_date = '1111-11-11'
         m = Movie(
             id = movie_id,
             title = movie['title'],
             overview = movie['overview'],
-            release_date = movie['release_date'],
+            release_date = release_date,
             vote_count = movie['vote_count'],
             vote_average = movie['vote_average'],
             poster_path = movie['poster_path'],
@@ -288,22 +309,25 @@ def save_movie(info_list, save_type):
 
         for cast in credit.get('cast')[:10]:
             cast_id = cast['id']
-
+            cast_detail = _movie.get_people_detail(cast_id)
             # 만약 Actor 테이블에 없다면 추가해줌
             if not Actor.objects.filter(id=cast_id).exists():
                 a = Actor(
                     id = cast['id'],
                     name = cast['name'],
-                    profile_path = cast['profile_path']
+                    profile_path = cast['profile_path'],
+                    birthday = cast_detail['birthday'],
+                    deathday = cast_detail['deathday'],
+                    homepage = cast_detail['homepage']
                 )
                 a.save()
-            m.actors.add(Actor.objects.get(id=cast_id))
+            character = CharacterName(movie=m, actor=Actor.objects.get(id=cast_id), character=cast['character'])
+            character.save()
 
         for crew in credit.get('crew'):
             if crew['job'] == 'Director':
-
                 crew_id = crew['id']
-
+                crew_detail = _movie.get_people_detail(crew_id)
                 # 만약 Crew 테이블에 없다면 추가해줌
                 if not Crew.objects.filter(id=crew_id).exists():
                     c = Crew(
@@ -311,6 +335,9 @@ def save_movie(info_list, save_type):
                         name = crew['name'],
                         job = crew['job'],
                         profile_path = crew['profile_path'],
+                        birthday = crew_detail['birthday'],
+                        deathday = crew_detail['deathday'],
+                        homepage = crew_detail['homepage'],
                     )
                     c.save()
                 m.crews.add(Crew.objects.get(id=crew_id))
