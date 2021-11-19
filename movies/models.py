@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+# from .models import CharacterName
 # Create your models here.
 
 # 배우
@@ -7,6 +8,9 @@ class Actor(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
     name = models.CharField(max_length=100)
     profile_path = models.TextField(null=True)
+    birthday = models.DateField(null=True)
+    deathday = models.DateField(null=True)
+    homepage = models.TextField(null=True)
 
     def __str__(self):
         return f'[{self.id}] {self.name}'
@@ -26,6 +30,10 @@ class Crew(models.Model):
     name = models.CharField(max_length=100)
     job = models.CharField(max_length=100)
     profile_path = models.TextField(null=True)
+    birthday = models.DateField(null=True)
+    deathday = models.DateField(null=True)
+    homepage = models.TextField(null=True)
+
 
     def __str__(self):
         return f'[{self.id}] {self.name}'
@@ -47,7 +55,7 @@ class Movie(models.Model):
     genre = models.ManyToManyField(Genre, related_name='genre_movies')
     vote_count = models.IntegerField()
     vote_average = models.FloatField()
-    actors = models.ManyToManyField(Actor, related_name='actor_movies')
+    actors = models.ManyToManyField(Actor, through='CharacterName', related_name='actor_movies')
     crews = models.ManyToManyField(Crew, related_name='crew_movies')
     keyword = models.ManyToManyField(Hashtag, related_name='hashtag_movies')
     poster_path = models.TextField(null=True)
@@ -55,6 +63,12 @@ class Movie(models.Model):
 
     def __str__(self):
         return f'[{self.id}] {self.title}'
+
+# 극중 캐릭터 이름
+class CharacterName(models.Model):
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    actor = models.ForeignKey(Actor, on_delete=models.CASCADE)
+    character = models.CharField(max_length=100, null=True)
 
 # 리뷰
 class Review(models.Model):
