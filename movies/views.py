@@ -86,7 +86,7 @@ def search(request):
     data = search_movie()
 
     # 검색결과가 없다면 TMDB에서 검색 진행 및 DB 저장 후 재 검색
-    if not (data.get('movies') or data.get('actors') or data.get('crews')):
+    if not (len(data.get('movies')) or len(data.get('actors')) or len(data.get('crews'))):
         _movie = GetMovie()
         movie_list = _movie.save_search_result(query)
         save_movie(movie_list, 'search')
@@ -102,9 +102,11 @@ def get_movie_detail(request, movie_pk):
     movie = get_object_or_404(Movie, pk=movie_pk)
     character_name = movie.actors.through.objects.filter(movie=movie)
     serializer = MovieSerializer(movie)
+    isLiked = request.user.favorite_movies.fiter(movie=movie).exist()
+    isSaved = request.user.bookmark_movies.filter(movie=movie).exist()
     for idx in range(len(serializer.data.get('actors'))):
         serializer.data.get('actors')[idx].update({'chracter': character_name[idx].character})
-
+    serializer.data.update({'isLiked': isLiked, 'isSaved': isSaved})
     return Response(serializer.data)
 
 
@@ -142,6 +144,7 @@ def get_or_create_review(request, movie_pk):
         if serializer.is_valid(raise_exception=True):
             serializer.save(movie=movie, user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 
 # 리뷰 수정&삭제 / 댓글 조회&작성
@@ -186,6 +189,53 @@ def update_or_delete_comment(request, comment_pk):
         comment.delete()
         return Response(data=f'{comment_pk}번 댓글 삭제', status=status.HTTP_204_NO_CONTENT)
 
+# 영화 좋아요
+@api_view(['POST'])
+def like_movie(request):
+    movie_id = request.data.get('movie_id')
+    movie = get_object_or_404(Movie, id=movie_id)
+    if request.user.favorite_movie.filter(id=movie_id).exist():
+        request.user.favorite_movie.remove(movie)
+        isLiked = False
+    else:
+        request.user.favorite_movie.add(movie)
+        isLiked = True
+    isSaved = request.user.bookmark_movies.filter(movie=movie).exist()
+    serializer = MovieSerializer(movie)
+    serializer.data.update({'isLiked' : isLiked, 'isSaved': isSaved})
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# 영화 저장
+@api_view(['POST'])
+def bookmark_movie(request):
+    movie_id = request.data.get('movie_id')
+    movie = get_object_or_404(Movie, id=movie_id)
+    if request.user.bookmark_movies.filter(id=movie_id).exist():
+        request.user.bookmark_movies.remove(movie)
+        isSaved = False
+    else:
+        request.user.bookmark_movies.add(movie)
+        isSaved = True
+    isLiked = request.user.favorite_movies.fiter(movie=movie).exist()
+    serializer = MovieSerializer(movie)
+    serializer.data.update({'isLiked' : isLiked, 'isSaved': isSaved})
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+# 리뷰 좋아요
+@api_view(['POST'])
+def like_review(request):
+    review_id = request.data.get('review_id')
+    review = get_object_or_404(Review, id=review_id)
+    if request.user.like_reviews.filter(review=review).exist():
+        request.user.like_reviews.remove(review)
+        isLiked = False
+    else:
+        request.user.like_reviews.add(review)
+        isLiked = True
+    serializer = ReviewSerializer(review)
+    serializer.data.update({'isLiked': isLiked})
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # 아래는 TMDB 에서 영화를 불러오기 위한 함수
