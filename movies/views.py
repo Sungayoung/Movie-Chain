@@ -100,7 +100,11 @@ def search(request):
 @api_view(['GET'])
 def get_movie_detail(request, movie_pk):
     movie = get_object_or_404(Movie, pk=movie_pk)
+    character_name = movie.actors.through.objects.filter(movie=movie)
     serializer = MovieSerializer(movie)
+    for idx in range(len(serializer.data.get('actors'))):
+        serializer.data.get('actors')[idx].update({'chracter': character_name[idx].character})
+
     return Response(serializer.data)
 
 
@@ -128,6 +132,8 @@ def get_or_create_review(request, movie_pk):
     if request.method == 'GET':  # 해당영화 리뷰 조회
         reviews = Review.objects.filter(movie=movie_pk)
         serializer = ReviewSerializer(reviews, many=True)
+        for idx in range(len(serializer.data)):
+            serializer.data[idx].update({'isWriter': serializer.data[idx].get('user').get('nickname') == request.user.nickname})
         return Response(serializer.data)
 
     elif request.method == 'POST':  # 새로운 리뷰 생성
@@ -155,6 +161,8 @@ def update_or_delete_review_or_get_or_create_comment_list(request, review_pk):
     elif request.method == 'GET':  # 댓글 조회
         comments = Comment.objects.filter(review=review)
         serializer = CommentSerializer(comments, many=True)
+        for idx in range(len(serializer.data)):
+            serializer.data[idx].update({'isWriter': serializer.data[idx].get('user').get('nickname') == request.user.nickname})
         return Response(serializer.data)
 
     elif request.method == 'POST':    # 새로운 댓글 작성

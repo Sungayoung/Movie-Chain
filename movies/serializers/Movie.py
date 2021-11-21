@@ -1,17 +1,19 @@
 from django.db.models import fields
+from django.db.models.query import QuerySet
 from rest_framework import serializers
 from movies.models import Movie, Actor, Crew, Review, Genre, Hashtag, CharacterName
 
 # 전체 리스트를 보여주는 Serializer
 class MovieListSerializer(serializers.ModelSerializer):
-
+    
     class Meta:
         model = Movie
         fields = ('id', 'title', 'overview', 'poster_path')
 
 # 상세 페이지를 보여주는 Serializer
 class MovieSerializer(serializers.ModelSerializer):
-
+    
+    
     class ActorSerializer(serializers.ModelSerializer):
         class Meta:
             model = Actor
