@@ -67,8 +67,8 @@ class Movie(models.Model):
 # 극중 캐릭터 이름
 class CharacterName(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    actor = models.ForeignKey(Actor, on_delete=models.CASCADE)
-    character = models.CharField(max_length=100, null=True)
+    actor = models.ForeignKey(Actor, on_delete=models.CASCADE, related_name='actor_character')
+    character = models.CharField(max_length=100, null=True,)
 
 # 리뷰
 class Review(models.Model):

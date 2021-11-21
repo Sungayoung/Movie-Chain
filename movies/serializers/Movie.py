@@ -17,7 +17,7 @@ class MovieSerializer(serializers.ModelSerializer):
     class ActorSerializer(serializers.ModelSerializer):
         class Meta:
             model = Actor
-            fields = '__all__'
+            fields = ('id', 'name', 'profile_path', 'birthday', 'deathday', 'homepage')
     
     class GenreSerializer(serializers.ModelSerializer):
         class Meta:
@@ -33,7 +33,6 @@ class MovieSerializer(serializers.ModelSerializer):
         class Meta:
             model = Hashtag
             fields = '__all__'
-
     actors = ActorSerializer(many=True, read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
     crews = CrewSerializer(many=True, read_only=True)
@@ -42,4 +41,4 @@ class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = ('id', 'title', 'overview', 'release_date', 'genre',
-        'vote_count', 'vote_average', 'actors', 'crews', 'keyword', 'poster_path', 'video_id')
+        'vote_count', 'vote_average', 'actors', 'crews', 'keyword', 'poster_path', 'video_id',)
