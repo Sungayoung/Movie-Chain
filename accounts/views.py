@@ -63,7 +63,11 @@ def chatting(request):
 @api_view(['GET', 'POST'])
 def get_or_set_profile_image(request):
     if request.method == 'GET':
-        serializer = UserSerializer(request.user)
+        if request.GET.get('username'):
+            serializer = UserSerializer(get_object_or_404(get_user_model(), username=request.GET.get('user')))
+        else:
+            serializer = UserSerializer(request.user)
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
     elif request.method == 'POST':
         img = request.FILES['files']
