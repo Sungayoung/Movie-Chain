@@ -21,7 +21,7 @@ class OverwriteStorage(FileSystemStorage):
 
 class User(AbstractUser):
     email = models.EmailField(blank=False)
-    nickname = models.CharField(max_length=20)
+    nickname = models.CharField(max_length=20, unique=True)
     birth = models.DateField(null=True)
     profile_img = ProcessedImageField(
         default='images/profile/degault.jpg',
