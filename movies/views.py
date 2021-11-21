@@ -1,5 +1,6 @@
 import requests
 from django.shortcuts import get_list_or_404, get_object_or_404
+from django.core.paginator import Paginator
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -11,8 +12,54 @@ from .serializers.Crew import CrewSerializer
 from .serializers.Movie import MovieListSerializer, MovieSerializer
 from .serializers.Review import ReviewSerializer
 
-
 # Create your views here.
+# 페이지별 영화목록
+@api_view(['GET'])
+def get_movie_list_page(request):
+
+    # 정렬 기준 설정, 기본값 : id 큰 순서
+    order = request.GET.get('order_by') if request.GET.get('order_by') else '-id'
+
+    # 기준 별로 movies_list를 뽑음.
+    filter_by = request.GET.get('filter_by')
+    filter_id = request.GET.get('filter_id')
+
+    # page 가져옴
+    page = request.GET.get('page')
+
+    # http://127.0.0.1:8000/movies/?filter_by='actor'&filter_id=9195&order_by=-title
+    if not filter_by:
+        return Response({'error' : 'filter_by가 존재하지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if filter_by == 'all':
+        movies = get_list_or_404(Movie.objects.order_by(order))
+    else:
+        if not filter_id:
+            return Response({'error': 'filter_id가 존재하지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if filter_by == 'actor':
+            actor = get_object_or_404(Actor, id=filter_id)
+            movies = get_list_or_404(actor.actor_movies.all().order_by(order))
+        
+        elif filter_by == 'crew':
+            crew = get_object_or_404(Actor, id=filter_id)
+            movies = get_list_or_404(crew.crew_movies.all().order_by(order))
+        
+        elif filter_by == 'keyword':
+            keyword = get_object_or_404(Hashtag, id=filter_id)
+            movies = get_list_or_404(keyword.hashtag_movies.all().order_by(order))
+        
+        elif filter_by == 'genre':
+            genre = get_object_or_404(Genre, id=filter_id)
+            movies = get_list_or_404(genre.genre_movies.all().order_by(order))
+        
+        else:
+            return Response({'error' : 'fiter_by 값이 올바르지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
+
+    paginator = Paginator(movies, 18)
+    movie_list = paginator.get_page(page)  
+    serializer = MovieListSerializer(movie_list, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 # 영화 목록 요청
 @api_view(['GET'])
