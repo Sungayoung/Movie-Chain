@@ -97,7 +97,11 @@ def search(request):
 @api_view(['GET'])
 def get_movie_detail(request, movie_pk):
     movie = get_object_or_404(Movie, pk=movie_pk)
+    character_name = movie.actors.through.objects.filter(movie=movie)
     serializer = MovieSerializer(movie)
+    for idx in range(len(serializer.data.get('actors'))):
+        serializer.data.get('actors')[idx].update({'chracter': character_name[idx].character})
+
     return Response(serializer.data)
 
 
