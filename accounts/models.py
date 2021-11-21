@@ -25,7 +25,7 @@ class User(AbstractUser):
     birth = models.DateField(null=True)
     profile_img = ProcessedImageField(
         default='images/profile/degault.jpg',
-        processors=[Thumbnail(300, 400)],
+        processors=[Thumbnail(300, 300)],
         format="JPEG",
         options={'quality': 90},
         upload_to=profile_image_path,
