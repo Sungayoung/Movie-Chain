@@ -1,7 +1,8 @@
 import requests
 from django.shortcuts import get_list_or_404, get_object_or_404
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from .models import *
 from .serializers.Actor import ActorSerializer
@@ -10,10 +11,12 @@ from .serializers.Crew import CrewSerializer
 from .serializers.Movie import MovieListSerializer, MovieSerializer
 from .serializers.Review import ReviewSerializer
 
+
 # Create your views here.
 
 # 영화 목록 요청
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_movie_list(request):
 
     # 정렬 기준 설정, 기본값 : id 큰 순서

@@ -13,6 +13,7 @@ from .serializers.Chatting import ChattingSerializer
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
+    
     # client에서 비밀번호 정보 받아옴
     password = request.data.get('password')
     password_confirmation = request.data.get('passwordConfirmation')
@@ -27,6 +28,10 @@ def signup(request):
     if serializer.is_valid(raise_exception=True):
         user = serializer.save()
         user.set_password(request.data.get('password'))
+        for gen in request.data.get('like_genres'):
+            user.like_genres.add(gen)
+        for mov in request.data.get('personal_movies'):
+            user.personal_movies.add(mov)
         user.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
