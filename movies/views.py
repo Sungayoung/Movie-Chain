@@ -102,7 +102,7 @@ def get_movie_detail(request, movie_pk):
     movie = get_object_or_404(Movie, pk=movie_pk)
     character_name = movie.actors.through.objects.filter(movie=movie)
     serializer = MovieSerializer(movie)
-    isLiked = request.user.favorite_movies.fiter(movie=movie).exist()
+    isLiked = request.user.favorite_movies.filter(movie=movie).exist()
     isSaved = request.user.bookmark_movies.filter(movie=movie).exist()
     for idx in range(len(serializer.data.get('actors'))):
         serializer.data.get('actors')[idx].update({'chracter': character_name[idx].character})
@@ -192,7 +192,7 @@ def update_or_delete_comment(request, comment_pk):
 # 영화 좋아요
 @api_view(['POST'])
 def like_movie(request):
-    movie_id = request.data.get('movie_id')
+    movie_id = request.data.get('movieId')
     movie = get_object_or_404(Movie, id=movie_id)
     if request.user.favorite_movie.filter(id=movie_id).exist():
         request.user.favorite_movie.remove(movie)
@@ -208,7 +208,7 @@ def like_movie(request):
 # 영화 저장
 @api_view(['POST'])
 def bookmark_movie(request):
-    movie_id = request.data.get('movie_id')
+    movie_id = request.data.get('movieId')
     movie = get_object_or_404(Movie, id=movie_id)
     if request.user.bookmark_movies.filter(id=movie_id).exist():
         request.user.bookmark_movies.remove(movie)
@@ -216,7 +216,7 @@ def bookmark_movie(request):
     else:
         request.user.bookmark_movies.add(movie)
         isSaved = True
-    isLiked = request.user.favorite_movies.fiter(movie=movie).exist()
+    isLiked = request.user.favorite_movies.filter(movie=movie).exist()
     serializer = MovieSerializer(movie)
     serializer.data.update({'isLiked' : isLiked, 'isSaved': isSaved})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -225,16 +225,16 @@ def bookmark_movie(request):
 # 리뷰 좋아요
 @api_view(['POST'])
 def like_review(request):
-    review_id = request.data.get('review_id')
+    review_id = request.data.get('reviewId')
     review = get_object_or_404(Review, id=review_id)
-    if request.user.like_reviews.filter(review=review).exist():
+    if request.user.like_reviews.filter(id=review_id).exists():
         request.user.like_reviews.remove(review)
         isLiked = False
     else:
         request.user.like_reviews.add(review)
         isLiked = True
     serializer = ReviewSerializer(review)
-    serializer.data.update({'isLiked': isLiked})
+    serializer.data.update({'isLiked': isLiked, 'isWriter': serializer.data.get('user').get('nickname') == request.user.nickname})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 

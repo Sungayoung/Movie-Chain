@@ -12,5 +12,8 @@ urlpatterns = [
     path('<int:movie_pk>/reviews/', views.get_or_create_review),
     path('reviews/<int:review_pk>/', views.update_or_delete_review_or_get_or_create_comment_list),
     path('comments/<int:comment_pk>/', views.update_or_delete_comment),
+    path('like-movie/', views.like_movie),
+    path('bookmark-movie/', views.bookmark_movie),
+    path('like-review/', views.like_review)
     # path('save-movie/', views.index)
 ]
