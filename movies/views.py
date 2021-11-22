@@ -245,10 +245,10 @@ def update_or_delete_comment(request, comment_pk):
 def like_movie(request):
     movie_id = request.data.get('movieId')
     movie = get_object_or_404(Movie, id=movie_id)
-    if request.user.favorite_movie.filter(id=movie_id).exist():
-        request.user.favorite_movie.remove(movie)
+    if request.user.favorite_movies.filter(id=movie_id).exists():
+        request.user.favorite_movies.remove(movie)
     else:
-        request.user.favorite_movie.add(movie)
+        request.user.favorite_movies.add(movie)
     serializer = MovieSerializer(movie, context={'user': request.user})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -257,7 +257,7 @@ def like_movie(request):
 def bookmark_movie(request):
     movie_id = request.data.get('movieId')
     movie = get_object_or_404(Movie, id=movie_id)
-    if request.user.bookmark_movies.filter(id=movie_id).exist():
+    if request.user.bookmark_movies.filter(id=movie_id).exists():
         request.user.bookmark_movies.remove(movie)
     else:
         request.user.bookmark_movies.add(movie)

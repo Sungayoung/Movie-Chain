@@ -44,13 +44,19 @@ class MovieSerializer(serializers.ModelSerializer):
 
     isLiked = serializers.SerializerMethodField()
     isSaved = serializers.SerializerMethodField()
-    
+    likeCnt = serializers.SerializerMethodField()
+    saveCnt = serializers.SerializerMethodField()
     def get_actors(self, obj):
         actors = self.ActorSerializer(obj.actors, many=True, read_only=True, context={'movie': obj})
         return actors.data
     genre = GenreSerializer(many=True, read_only=True)
     crews = CrewSerializer(many=True, read_only=True)
     keyword = HashtagSerializer(many=True, read_only=True)
+    def get_likeCnt(self, obj):
+        return obj.favorite_users.count()
+
+    def get_saveCnt(self, obj):
+        return obj.bookmark_users.count()
 
     def get_isLiked(self, obj):
         return obj.favorite_users.filter(id=self.context.get('user').id).exists()
@@ -60,5 +66,5 @@ class MovieSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Movie
-        fields = ('id', 'title', 'overview', 'release_date', 'genre',
+        fields = ('id', 'title', 'overview', 'release_date', 'genre', 'likeCnt', 'saveCnt', 
         'vote_count', 'vote_average', 'actors', 'crews', 'keyword', 'poster_path', 'video_id', 'isLiked', 'isSaved')
