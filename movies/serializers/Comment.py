@@ -13,7 +13,11 @@ class CommentSerializer(serializers.ModelSerializer):
             fields = ('nickname', 'profile_img')
 
     user = UserSerializer(read_only=True)
+    isWriter = serializers.SerializerMethodField()
+
+    def get_isWriter(self, obj):
+        return obj.user == self.context.get('user')
 
     class Meta:
         model = Comment
-        fields = ('id', 'user', 'content', 'created_at', 'updated_at')
+        fields = ('id', 'user', 'content', 'isWriter', 'created_at', 'updated_at')
