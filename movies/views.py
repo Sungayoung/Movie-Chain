@@ -27,6 +27,9 @@ def get_movie_list_page(request):
     # page 가져옴
     page = request.GET.get('page')
 
+    # page별 영화 개수 지정, 기본값: 36개
+    movie_cnt = request.GET.get('movie_cnt') if request.GET.get('movie_cnt') else 36
+
     # http://127.0.0.1:8000/movies/?filter_by='actor'&filter_id=9195&order_by=-title
     if not filter_by:
         return Response({'error' : 'filter_by가 존재하지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
@@ -56,7 +59,7 @@ def get_movie_list_page(request):
         else:
             return Response({'error' : 'fiter_by 값이 올바르지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
 
-    paginator = Paginator(movies, 18)
+    paginator = Paginator(movies, movie_cnt)
     movie_list = paginator.get_page(page)  
     serializer = MovieListSerializer(movie_list, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
