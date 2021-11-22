@@ -174,12 +174,16 @@ def get_crew_list(request, movie_pk):
 @api_view(['GET', 'POST'])
 def get_or_create_review(request, movie_pk):
     if request.method == 'GET':  # 해당영화 리뷰 조회
-        my_review = Review.objects.filter(movie=movie_pk, user=request.user)
-        reviews = Review.objects.filter(movie=movie_pk).exclude(user=request.user)
+        my_review = Review.objects.filter(movie=movie_pk, user=request.user, content__isnull=False)
+        my_rank = Review.objects.filter(movie=movie_pk, user=request.user, rank__isnull=False)
+        reviews = Review.objects.filter(movie=movie_pk, content__isnull=False).exclude(user=request.user)
+        serializer_my_rank = ReviewSerializer(my_rank, many=True, context={'user': request.user})
         serializer_my_review = ReviewSerializer(my_review, many=True, context={'user': request.user})
         serializer_review = ReviewSerializer(reviews, many=True, context={'user': request.user})
         data = {
-            'my_review': serializer_my_review.data,
+            'myRank': serializer_my_rank.data,
+            'reviewCnt': len(serializer_my_review.data) + len(serializer_review.data),
+            'myReview': serializer_my_review.data,
             'reviews': serializer_review.data,
         }
         return Response(data)
