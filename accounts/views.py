@@ -63,10 +63,12 @@ def chatting(request):
 @api_view(['GET', 'POST'])
 def get_or_set_profile_image(request):
     if request.method == 'GET':
-        if request.GET.get('username'):
-            serializer = UserSerializer(get_object_or_404(get_user_model(), username=request.GET.get('user')))
+        if request.GET.get('nickname'):
+            serializer = UserSerializer(get_object_or_404(get_user_model(), nickname=request.GET.get('nickname')))
+            serializer.data.update({'isLoginUser': request.GET.get('nickname') == request.user.nickname})
         else:
             serializer = UserSerializer(request.user)
+            serializer.data.update({'isLoginUser': True})
         
         return Response(serializer.data, status=status.HTTP_200_OK)
     elif request.method == 'POST':
@@ -74,4 +76,5 @@ def get_or_set_profile_image(request):
         user = request.user
         user.profile_img = img
         user.save()
-        return Response({'img': '이미지 등록이 완료되었습니다.'}, status=status.HTTP_201_CREATED)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

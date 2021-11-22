@@ -147,13 +147,7 @@ def search(request):
 @api_view(['GET'])
 def get_movie_detail(request, movie_pk):
     movie = get_object_or_404(Movie, pk=movie_pk)
-    # character_name = movie.actors.through.objects.filter(movie=movie)
-    serializer = MovieSerializer(movie)
-    # isLiked = request.user.favorite_movies.filter(movie=movie).exist()
-    # isSaved = request.user.bookmark_movies.filter(movie=movie).exist()
-    # for idx in range(len(serializer.data.get('actors'))):
-    #     serializer.data.get('actors')[idx].update({'chracter': character_name[idx].character})
-    # serializer.data.update({'isLiked': isLiked, 'isSaved': isSaved})
+    serializer = MovieSerializer(movie, context={'user': request.user})
     return Response(serializer.data)
 
 
@@ -175,19 +169,35 @@ def get_crew_list(request, movie_pk):
     return Response(serializer.data)
 
 
+
 # 해당 영화의 리뷰 조회와 새로운 리뷰 생성 요청
 @api_view(['GET', 'POST'])
 def get_or_create_review(request, movie_pk):
     if request.method == 'GET':  # 해당영화 리뷰 조회
-        reviews = Review.objects.filter(movie=movie_pk)
-        serializer = ReviewSerializer(reviews, many=True, context={'user': request.user})
-        # for idx in range(len(serializer.data)):
-        #     serializer.data[idx].update({'isWriter': serializer.data[idx].get('user').get('nickname') == request.user.nickname})
-        return Response(serializer.data)
+        my_review = Review.objects.filter(movie=movie_pk, user=request.user, content__isnull=False)
+        my_rank = Review.objects.filter(movie=movie_pk, user=request.user, rank__isnull=False)
+        reviews = Review.objects.filter(movie=movie_pk, content__isnull=False).exclude(user=request.user)
+        serializer_my_rank = ReviewSerializer(my_rank, many=True, context={'user': request.user})
+        serializer_my_review = ReviewSerializer(my_review, many=True, context={'user': request.user})
+        serializer_review = ReviewSerializer(reviews, many=True, context={'user': request.user})
+        data = {
+            'myRank': serializer_my_rank.data,
+            'reviewCnt': len(serializer_my_review.data) + len(serializer_review.data),
+            'myReview': serializer_my_review.data,
+            'reviews': serializer_review.data,
+        }
+        return Response(data)
 
     elif request.method == 'POST':  # 새로운 리뷰 생성
         movie = get_object_or_404(Movie, pk=movie_pk)
-        serializer = ReviewSerializer(data=request.data, context={'user': request.user})
+        
+        # 이미 있으면 해당리뷰 수정
+        if Review.objects.filter(movie=movie, user=request.user).exists():
+            review = get_object_or_404(Review, movie=movie_pk, user=request.user)
+            serializer = ReviewSerializer(instance=review, data=request.data, context={'user': request.user})
+        else:
+            serializer = ReviewSerializer(data=request.data, context={'user': request.user})
+        
         if serializer.is_valid(raise_exception=True):
             serializer.save(movie=movie, user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -210,13 +220,11 @@ def update_or_delete_review_or_get_or_create_comment_list(request, review_pk):
 
     elif request.method == 'GET':  # 댓글 조회
         comments = Comment.objects.filter(review=review)
-        serializer = CommentSerializer(comments, many=True)
-        for idx in range(len(serializer.data)):
-            serializer.data[idx].update({'isWriter': serializer.data[idx].get('user').get('nickname') == request.user.nickname})
+        serializer = CommentSerializer(comments, many=True, context={'user': request.user})
         return Response(serializer.data)
 
     elif request.method == 'POST':    # 새로운 댓글 작성
-        serializer = CommentSerializer(data=request.data)
+        serializer = CommentSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid(raise_exception=True):
             serializer.save(review=review, user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -227,7 +235,7 @@ def update_or_delete_review_or_get_or_create_comment_list(request, review_pk):
 def update_or_delete_comment(request, comment_pk):
     comment = get_object_or_404(Comment, pk=comment_pk)
     if request.method == 'PUT':
-        serializer = CommentSerializer(instance=comment, data=request.data)
+        serializer = CommentSerializer(instance=comment, data=request.data, context={'user': request.user})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
@@ -241,15 +249,11 @@ def update_or_delete_comment(request, comment_pk):
 def like_movie(request):
     movie_id = request.data.get('movieId')
     movie = get_object_or_404(Movie, id=movie_id)
-    if request.user.favorite_movie.filter(id=movie_id).exist():
-        request.user.favorite_movie.remove(movie)
-        isLiked = False
+    if request.user.favorite_movies.filter(id=movie_id).exists():
+        request.user.favorite_movies.remove(movie)
     else:
-        request.user.favorite_movie.add(movie)
-        isLiked = True
-    isSaved = request.user.bookmark_movies.filter(movie=movie).exist()
-    serializer = MovieSerializer(movie)
-    serializer.data.update({'isLiked' : isLiked, 'isSaved': isSaved})
+        request.user.favorite_movies.add(movie)
+    serializer = MovieSerializer(movie, context={'user': request.user})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 # 영화 저장
@@ -257,15 +261,11 @@ def like_movie(request):
 def bookmark_movie(request):
     movie_id = request.data.get('movieId')
     movie = get_object_or_404(Movie, id=movie_id)
-    if request.user.bookmark_movies.filter(id=movie_id).exist():
+    if request.user.bookmark_movies.filter(id=movie_id).exists():
         request.user.bookmark_movies.remove(movie)
-        isSaved = False
     else:
         request.user.bookmark_movies.add(movie)
-        isSaved = True
-    isLiked = request.user.favorite_movies.filter(movie=movie).exist()
-    serializer = MovieSerializer(movie)
-    serializer.data.update({'isLiked' : isLiked, 'isSaved': isSaved})
+    serializer = MovieSerializer(movie, context={'user': request.user})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 

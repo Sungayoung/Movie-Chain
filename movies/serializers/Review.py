@@ -15,13 +15,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     isLiked = serializers.SerializerMethodField()
     isWriter = serializers.SerializerMethodField()
 
-    def get_isLiked(self, obj):
-        return obj.like_users.filter(id=self.context.get('user').id).exists()
-
     def get_isWriter(self, obj):
         return obj.user == self.context.get('user')
+
+    def get_isLiked(self, obj):
+        return obj.like_users.filter(id=self.context.get('user').id).exists()
 
     class Meta:
         model = Review
         fields = ('id', 'user', 'content', 'rank',
-                  'created_at', 'updated_at', 'isWriter', 'isLiked')
+                  'created_at', 'updated_at', 'isLiked', 'isWriter')
