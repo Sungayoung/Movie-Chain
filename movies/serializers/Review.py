@@ -12,9 +12,16 @@ class ReviewSerializer(serializers.ModelSerializer):
             fields = ('nickname', 'profile_img')
 
     user = UserSerializer(read_only=True)
-    like_users = UserSerializer(many=True, read_only=True)
+    isLiked = serializers.SerializerMethodField()
+    isWriter = serializers.SerializerMethodField()
+
+    def get_isLiked(self, obj):
+        return obj.like_users.filter(id=self.context.get('user').id).exists()
+
+    def get_isWriter(self, obj):
+        return obj.user == self.context.get('user')
 
     class Meta:
         model = Review
         fields = ('id', 'user', 'content', 'rank',
-                  'created_at', 'updated_at', 'like_users')
+                  'created_at', 'updated_at', 'isWriter', 'isLiked')

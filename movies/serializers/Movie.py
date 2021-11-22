@@ -15,9 +15,14 @@ class MovieSerializer(serializers.ModelSerializer):
     
     
     class ActorSerializer(serializers.ModelSerializer):
+
+        character = serializers.SerializerMethodField()
+        def get_character(self, obj):
+            return obj.actor_movies.through.objects.filter(actor=obj, movie=self.context.get('movie'))[0].character
+        
         class Meta:
             model = Actor
-            fields = ('id', 'name', 'profile_path', 'birthday', 'deathday', 'homepage')
+            fields = ('id', 'name', 'profile_path', 'birthday', 'deathday', 'homepage', 'character')
     
     class GenreSerializer(serializers.ModelSerializer):
         class Meta:
@@ -33,7 +38,12 @@ class MovieSerializer(serializers.ModelSerializer):
         class Meta:
             model = Hashtag
             fields = '__all__'
-    actors = ActorSerializer(many=True, read_only=True)
+    
+    actors = serializers.SerializerMethodField()
+
+    def get_actors(self, obj):
+        actors = self.ActorSerializer(obj.actors, many=True, read_only=True, context={'movie': obj})
+        return actors.data
     genre = GenreSerializer(many=True, read_only=True)
     crews = CrewSerializer(many=True, read_only=True)
     keyword = HashtagSerializer(many=True, read_only=True)
