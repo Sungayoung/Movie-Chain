@@ -9,4 +9,5 @@ urlpatterns = [
     path('api-token-auth/', obtain_jwt_token),
     path('chatting/', views.chatting),
     path('profile/', views.get_or_set_profile_image),
+    path('set-personal-movie/', views.set_personal_movies)
 ]

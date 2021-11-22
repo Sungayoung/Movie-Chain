@@ -300,7 +300,7 @@ class GetMovie:
         for i in range(32, page_num+1):
             params = {
                 'api_key': self.API_KEY,
-                'language': 'ko',
+                'language': 'ko-KR',
                 'page': i
             }
             res = requests.get(url, params=params).json().get('results')
@@ -313,7 +313,7 @@ class GetMovie:
         params = {
             'api_key': self.API_KEY,
             'query': query,
-            'language': 'ko',
+            'language': 'ko-KR',
         }
         res = requests.get(url, params=params).json().get('results')
         return res
@@ -322,7 +322,7 @@ class GetMovie:
         url = f'{self.BASE_URL}/movie/{movie_id}/credits'
         params = {
             'api_key': self.API_KEY,
-            'language': 'ko'
+            'language': 'ko-KR'
         }
         res = requests.get(url, params=params)
         return res.json()
@@ -340,7 +340,7 @@ class GetMovie:
         url = f'{self.BASE_URL}/genre/movie/list'
         params = {
             'api_key': self.API_KEY,
-            'language': 'ko'
+            'language': 'ko-KR'
         }
         res = requests.get(url, params=params)
         return res.json().get('genres')
@@ -349,7 +349,7 @@ class GetMovie:
         url = f'{self.BASE_URL}/movie/{movie_id}/videos'
         params = {
             'api_key': self.API_KEY,
-            'language': 'ko',
+            'language': 'ko-KR',
         }
         res = requests.get(url, params=params).json()
         for video in res['results']:
@@ -359,7 +359,7 @@ class GetMovie:
         url = f'{self.BASE_URL}/person/{people_id}'
         params = {
             'api_key': self.API_KEY,
-            'language': 'ko',
+            'language': 'ko-KR',
         }
         res = requests.get(url, params=params)
         return res.json()
