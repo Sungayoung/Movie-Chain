@@ -11,5 +11,5 @@ class ChattingSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     class Meta:
         model = Chatting
-        fields = ('from_user', 'to_user', 'content', 'created_at')
+        fields = ('id', 'from_user', 'to_user', 'content', 'created_at')
     

@@ -35,7 +35,7 @@ def signup(request):
         user.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'DELETE'])
 def chatting(request):
     me = request.user
     if request.method == 'GET':
@@ -58,6 +58,14 @@ def chatting(request):
         data = message.save()
         serializer = ChattingSerializer(data)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    elif request.method == 'DELETE':
+        chatId = request.data.get('chatId')
+
+        if not chatId:
+            return Response({'error': 'chatId가 없습니다'}, status=status.HTTP_400_BAD_REQUEST)
+        chatting = Chatting.objects.get(id=chatId)
+        chatting.delete()
+        return Response({'delete': f"{chatting.id}가 삭제되었습니다"}, status=status.HTTP_201_CREATED) 
 
 
 @api_view(['GET', 'POST'])
