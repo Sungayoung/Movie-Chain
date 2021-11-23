@@ -27,9 +27,12 @@ def signup(request):
 
     # 데이터 직렬화
     serializer = SignupSerializer(data=request.data)
-
+    print(valid_checked)
+    print(1)
     if serializer.is_valid(raise_exception=True):
+        print(2)
         if valid_checked:     # 유효성 검사확인된 것만 db에 저장
+            print(3)
             user = serializer.save()
             user.set_password(request.data.get('password'))
             for gen in request.data.get('like_genres'):
