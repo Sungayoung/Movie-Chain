@@ -42,6 +42,21 @@ def signup(request):
             user.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+@api_view(['PUT'])
+def update_user(request):
+    print(request.data)
+    password = request.data.get('password')
+    
+    # 데이터 직렬화
+    serializer = SignupSerializer(instance=request.user, data=request.data)
+
+    if serializer.is_valid(raise_exception=True):
+        user = serializer.save()
+        if password:
+            user.set_password(request.data.get('password'))
+        user.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 @api_view(['POST', 'PUT'])
 def set_personal_movies(request):
     if request.method == 'POST':
@@ -61,13 +76,13 @@ def set_personal_movies(request):
         print(origin_movie)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-@api_view(['GET', 'POST', 'DELETE'])
+@api_view(['GET', 'POST', 'DELETE', 'PUT'])
 def chatting(request):
     me = request.user
     if request.method == 'GET':
-        get_messages = me.from_chatting.through.objects.filter(user=me, to_user=me)
+        get_messages = me.from_chatting.through.objects.filter(user=me, to_user=me).order_by('-id')
         serializer_get_messages = ChattingSerializer(get_messages, many=True)
-        send_messages = me.from_chatting.through.objects.filter(user=me, from_user=me)
+        send_messages = me.from_chatting.through.objects.filter(user=me, from_user=me).order_by('-id')
         serializer_send_messages = ChattingSerializer(send_messages, many=True)
         data = {
             'getMessages': serializer_get_messages.data,
@@ -85,18 +100,28 @@ def chatting(request):
         
         if not content:
             return Response({'error' : '내용이 없습니다'}, status=status.HTTP_400_BAD_REQUEST)
-        from_message = Chatting(user=to_user, from_user=me, to_user=to_user, content=content)
-        to_message = Chatting(user=request.user, from_user=me, to_user=to_user, content=content)
-        data = from_message.save()
-        serializer = ChattingSerializer(data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        from_message = Chatting(user=me, from_user=me, to_user=to_user, content=content)
+        to_message = Chatting(user=to_user, from_user=me, to_user=to_user, content=content)
+        from_message_data = from_message.save()
+        to_message_data = to_message.save()
+        serializer_from = ChattingSerializer(from_message_data)
+        return Response(serializer_from.data, status=status.HTTP_201_CREATED)
     elif request.method == 'DELETE':
         chatId = request.data.get('chatId')
         if not chatId:
             return Response({'error': 'chatId가 없습니다'}, status=status.HTTP_400_BAD_REQUEST)
         chatting = Chatting.objects.get(id=chatId)
         chatting.delete()
-        return Response({'delete': f"{chatting.id}가 삭제되었습니다"}, status=status.HTTP_201_CREATED) 
+        return Response({'delete': "삭제되었습니다"}, status=status.HTTP_201_CREATED)
+    # 읽음 확인
+    elif request.method == 'PUT':
+        chatId = request.data.get('chatId')
+        if not chatId:
+            return Response({'error': 'chatId가 없습니다'}, status=status.HTTP_400_BAD_REQUEST)
+        chatting = Chatting.objects.get(id=chatId)
+        chatting.is_read = True
+        chatting.save()
+        return Response({'update': f"{chatting.id}가 업데이트 되었습니다."}, status=status.HTTP_201_CREATED)
 
 
 @api_view(['GET', 'POST'])
@@ -113,7 +138,7 @@ def get_or_set_profile_image(request):
         user = request.user
         user.profile_img = img
         user.save()
-        serializer = UserSerializer(user)
+        serializer = UserSerializer(user, context={'user': request.user})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])

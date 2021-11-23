@@ -11,12 +11,12 @@ class ChattingSerializer(serializers.ModelSerializer):
 
         class Meta:
             model = User
-            fields = ('pk', 'email', 'nickname', 'profile_img', 'is_following')
+            fields = ('pk', 'email', 'nickname', 'profile_img')
 
     from_user = UserSerializer()
     to_user = UserSerializer()
     created_at = serializers.DateTimeField(read_only=True)
     class Meta:
         model = Chatting
-        fields = ('id', 'from_user', 'to_user', 'content', 'created_at')
+        fields = ('id', 'from_user', 'to_user', 'content', 'created_at', 'is_read')
     
