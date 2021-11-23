@@ -24,7 +24,7 @@ def get_movie_list_page(request):
 
     # 기준 별로 movies_list를 뽑음.
     filter_by = request.GET.get('filter_by')
-    filter_id_list = request.GET.get('filter_id_list')
+    filter_id = request.GET.get('filter_id')
 
     # page 가져옴
     page = request.GET.get('page')
@@ -39,23 +39,23 @@ def get_movie_list_page(request):
     if filter_by == 'all':
         movies = get_list_or_404(Movie.objects.order_by(order))
     else:
-        if not filter_id_list:
+        if not filter_id:
             return Response({'error': 'filter_id가 존재하지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
         
         if filter_by == 'actor':
-            actor = get_object_or_404(Actor, id__in=filter_id_list)
+            actor = get_object_or_404(Actor, id=filter_id)
             movies = get_list_or_404(actor.actor_movies.all().order_by(order))
         
         elif filter_by == 'crew':
-            crew = get_object_or_404(Actor, id__in=filter_id_list)
+            crew = get_object_or_404(Crew, id=filter_id)
             movies = get_list_or_404(crew.crew_movies.all().order_by(order))
         
         elif filter_by == 'keyword':
-            keyword = get_object_or_404(Hashtag, id__in=filter_id_list)
+            keyword = get_object_or_404(Hashtag, id=filter_id)
             movies = get_list_or_404(keyword.hashtag_movies.all().order_by(order))
         
         elif filter_by == 'genre':
-            genre = get_object_or_404(Genre, id__in=filter_id_list)
+            genre = get_object_or_404(Genre, id=filter_id)
             movies = get_list_or_404(genre.genre_movies.all().order_by(order))
         
         else:
@@ -91,19 +91,19 @@ def get_movie_list(request):
         if not filter_id:
             return Response({'error': 'filter_id가 존재하지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
         
-        if filter_by == 'actors':
+        if filter_by == 'actor':
             actor = get_object_or_404(Actor, id=filter_id)
             movies = get_list_or_404(actor.actor_movies.all().order_by(order))
         
-        elif filter_by == 'crews':
-            crew = get_object_or_404(Actor, id=filter_id)
+        elif filter_by == 'crew':
+            crew = get_object_or_404(Crew, id=filter_id)
             movies = get_list_or_404(crew.crew_movies.all().order_by(order))
         
-        elif filter_by == 'hashtags':
-            hashtag = get_object_or_404(Hashtag, id=filter_id)
-            movies = get_list_or_404(hashtag.hashtag_movies.all().order_by(order))
+        elif filter_by == 'keyword':
+            keyword = get_object_or_404(Hashtag, id=filter_id)
+            movies = get_list_or_404(keyword.hashtag_movies.all().order_by(order))
         
-        elif filter_by == 'genres':
+        elif filter_by == 'genre':
             genre = get_object_or_404(Genre, id=filter_id)
             movies = get_list_or_404(genre.genre_movies.all().order_by(order))
         
@@ -125,6 +125,8 @@ def search(request):
         movies = Movie.objects.filter(title__icontains=query)
         actors = Actor.objects.filter(name__icontains=query)
         crews = Crew.objects.filter(name__icontains=query)
+        genres = Genre.objects.filter(name__icontains=query)
+        keywords = Hashtag.objects.filter(name__icontains=query)
         for actor in actors:
             movies.union(actor.actor_movies.all())
         
@@ -133,18 +135,22 @@ def search(request):
         data = {
             'movies': MovieListSerializer(movies, many=True).data,
             'actors': ActorSerializer(actors, many=True).data,
-            'crews': CrewSerializer(crews, many=True).data
+            'crews': CrewSerializer(crews, many=True).data,
+            'genres': GenreSerializer(genres, many=True).data,
+            'keywords': HashtagSerializer(keywords, many=True).data,
+
         }
         return data
 
     data = search_movie()
 
-    # 검색결과가 없다면 TMDB에서 검색 진행 및 DB 저장 후 재 검색
-    if not (len(data.get('movies')) or len(data.get('actors')) or len(data.get('crews'))):
-        _movie = GetMovie()
-        movie_list = _movie.save_search_result(query)
-        save_movie(movie_list, 'search')
-        data = search_movie()
+    # 일단 보류
+    # # 검색결과가 없다면 TMDB에서 검색 진행 및 DB 저장 후 재 검색
+    # if not (len(data.get('movies')) or len(data.get('actors')) or len(data.get('crews'))):
+    #     _movie = GetMovie()
+    #     movie_list = _movie.save_search_result(query)
+    #     save_movie(movie_list, 'search')
+    #     data = search_movie()
     
     
     return Response(data, status=status.HTTP_200_OK)
