@@ -19,4 +19,4 @@ class CrewProfileSerializer(serializers.ModelSerializer):
     movies = MovieListSerializer(source="crew_movies", many=True)
     class Meta:
         model = Crew
-        fields = ('id', 'name', 'job', 'profile_path', 'is_following', 'movies')
+        fields = ('id', 'name', 'job', 'birthday', 'deathday', 'profile_path', 'is_following', 'movies')
