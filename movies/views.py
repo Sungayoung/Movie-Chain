@@ -11,6 +11,8 @@ from .serializers.Comment import CommentSerializer
 from .serializers.Crew import CrewSerializer
 from .serializers.Movie import MovieListSerializer, MovieSerializer
 from .serializers.Review import ReviewSerializer
+from .serializers.Genre import GenreSerializer
+from .serializers.Hashtag import HashtagSerializer
 
 # Create your views here.
 # 페이지별 영화목록
@@ -45,7 +47,7 @@ def get_movie_list_page(request):
             movies = get_list_or_404(actor.actor_movies.all().order_by(order))
         
         elif filter_by == 'crew':
-            crew = get_object_or_404(Actor, id=filter_id)
+            crew = get_object_or_404(Crew, id=filter_id)
             movies = get_list_or_404(crew.crew_movies.all().order_by(order))
         
         elif filter_by == 'keyword':
@@ -61,8 +63,10 @@ def get_movie_list_page(request):
 
     paginator = Paginator(movies, movie_cnt)
     movie_list = paginator.get_page(page)  
+    total_page_cnt = paginator.num_pages + 1
     serializer = MovieListSerializer(movie_list, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    res = {'serialized_data':serializer.data, 'total_page_cnt':total_page_cnt}
+    return Response(res, status=status.HTTP_200_OK)
 
 # 영화 목록 요청
 @api_view(['GET'])
@@ -92,7 +96,7 @@ def get_movie_list(request):
             movies = get_list_or_404(actor.actor_movies.all().order_by(order))
         
         elif filter_by == 'crew':
-            crew = get_object_or_404(Actor, id=filter_id)
+            crew = get_object_or_404(Crew, id=filter_id)
             movies = get_list_or_404(crew.crew_movies.all().order_by(order))
         
         elif filter_by == 'keyword':
@@ -121,6 +125,8 @@ def search(request):
         movies = Movie.objects.filter(title__icontains=query)
         actors = Actor.objects.filter(name__icontains=query)
         crews = Crew.objects.filter(name__icontains=query)
+        genres = Genre.objects.filter(name__icontains=query)
+        keywords = Hashtag.objects.filter(name__icontains=query)
         for actor in actors:
             movies.union(actor.actor_movies.all())
         
@@ -129,18 +135,22 @@ def search(request):
         data = {
             'movies': MovieListSerializer(movies, many=True).data,
             'actors': ActorSerializer(actors, many=True).data,
-            'crews': CrewSerializer(crews, many=True).data
+            'crews': CrewSerializer(crews, many=True).data,
+            'genres': GenreSerializer(genres, many=True).data,
+            'keywords': HashtagSerializer(keywords, many=True).data,
+
         }
         return data
 
     data = search_movie()
 
-    # 검색결과가 없다면 TMDB에서 검색 진행 및 DB 저장 후 재 검색
-    if not (len(data.get('movies')) or len(data.get('actors')) or len(data.get('crews'))):
-        _movie = GetMovie()
-        movie_list = _movie.save_search_result(query)
-        save_movie(movie_list, 'search')
-        data = search_movie()
+    # 일단 보류
+    # # 검색결과가 없다면 TMDB에서 검색 진행 및 DB 저장 후 재 검색
+    # if not (len(data.get('movies')) or len(data.get('actors')) or len(data.get('crews'))):
+    #     _movie = GetMovie()
+    #     movie_list = _movie.save_search_result(query)
+    #     save_movie(movie_list, 'search')
+    #     data = search_movie()
     
     
     return Response(data, status=status.HTTP_200_OK)
@@ -169,6 +179,35 @@ def get_crew_list(request, movie_pk):
     movie = get_object_or_404(Movie, pk=movie_pk)   # 위와 동일
     crew = Crew.objects.filter(crew_movies=movie)
     serializer = CrewSerializer(crew, many=True)
+    return Response(serializer.data)
+
+# 모든배우 리스트 요청
+@api_view(['GET'])
+def get_actor_list_all(request):
+    actors = Actor.objects.all()
+    serializer = ActorSerializer(actors, many=True)
+    return Response(serializer.data)
+
+
+# 모든제작진 리스트 요청
+@api_view(['GET'])
+def get_crew_list_all(request):
+    crews = Crew.objects.all()
+    serializer = CrewSerializer(crews, many=True)
+    return Response(serializer.data)
+
+# 모든장르 리스트 요청
+@api_view(['GET'])    
+def get_genre_list_all(request):
+    genres = Genre.objects.all()
+    serializer = GenreSerializer(genres, many=True)
+    return Response(serializer.data)
+
+# 모든키워드 리스트 요청
+@api_view(['GET'])
+def get_hashtag_list_all(request):
+    hashtags = Hashtag.objects.all()
+    serializer = HashtagSerializer(hashtags, many=True)
     return Response(serializer.data)
 
 
