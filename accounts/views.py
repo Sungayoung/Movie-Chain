@@ -62,9 +62,9 @@ def set_personal_movies(request):
 def chatting(request):
     me = request.user
     if request.method == 'GET':
-        get_messages = me.from_chatting.through.objects.filter(to_user=me)
+        get_messages = me.from_chatting.through.objects.filter(user=me, to_user=me)
         serializer_get_messages = ChattingSerializer(get_messages, many=True)
-        send_messages = me.from_chatting.through.objects.filter(from_user=me)
+        send_messages = me.from_chatting.through.objects.filter(user=me, from_user=me)
         serializer_send_messages = ChattingSerializer(send_messages, many=True)
         data = {
             'getMessages': serializer_get_messages.data,
@@ -82,8 +82,9 @@ def chatting(request):
         
         if not content:
             return Response({'error' : '내용이 없습니다'}, status=status.HTTP_400_BAD_REQUEST)
-        message = Chatting(from_user=me, to_user=to_user, content=content)
-        data = message.save()
+        from_message = Chatting(user=to_user, from_user=me, to_user=to_user, content=content)
+        to_message = Chatting(user=request.user, from_user=me, to_user=to_user, content=content)
+        data = from_message.save()
         serializer = ChattingSerializer(data)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     elif request.method == 'DELETE':
@@ -99,11 +100,9 @@ def chatting(request):
 def get_or_set_profile_image(request):
     if request.method == 'GET':
         if request.GET.get('nickname'):
-            serializer = UserSerializer(get_object_or_404(get_user_model(), nickname=request.GET.get('nickname')))
-            serializer.data.update({'isLoginUser': request.GET.get('nickname') == request.user.nickname})
+            serializer = UserSerializer(get_object_or_404(get_user_model(), nickname=request.GET.get('nickname')), context={'user': request.user})
         else:
-            serializer = UserSerializer(request.user)
-            serializer.data.update({'isLoginUser': True})
+            serializer = UserSerializer(request.user, context={'user': request.user})
         
         return Response(serializer.data, status=status.HTTP_200_OK)
     elif request.method == 'POST':
@@ -113,3 +112,19 @@ def get_or_set_profile_image(request):
         user.save()
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def follow(request):
+    me = request.user
+    user_id = request.data.get('user_id')
+    print(user_id)
+    you = get_object_or_404(get_user_model(), id=user_id)
+
+    if me.followings.filter(id=you.id).exists():
+        me.followings.remove(you)
+    else:
+        me.followings.add(you)
+    
+    serializer = UserSerializer(you, context={'user': request.user})
+
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
