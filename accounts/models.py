@@ -20,7 +20,7 @@ class OverwriteStorage(FileSystemStorage):
         return name
 
 class User(AbstractUser):
-    email = models.EmailField(blank=False)
+    email = models.EmailField(blank=False, unique=True)
     nickname = models.CharField(max_length=20, unique=True)
     birth = models.DateField(null=True)
     profile_img = ProcessedImageField(
@@ -34,7 +34,7 @@ class User(AbstractUser):
     introduce_content = models.CharField(max_length=200, null=True)
     followers = models.ManyToManyField('self', symmetrical=False, related_name='followings')
     blocked_user = models.ManyToManyField('self', symmetrical=False, related_name='blocking_user')
-    to_chatting = models.ManyToManyField('self', symmetrical=False, through='Chatting', related_name='from_chatting')
+    to_chatting = models.ManyToManyField('self', symmetrical=False, through='Chatting', through_fields=('from_user', 'to_user'), related_name='from_chatting')
     actor_following = models.ManyToManyField(Actor, related_name='actor_following_user')
     crew_following = models.ManyToManyField(Crew, related_name='crew_following_user')
     like_genres = models.ManyToManyField(Genre, related_name='genre_like_users')
@@ -44,6 +44,7 @@ class User(AbstractUser):
 
 
 class Chatting(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="saved_user")
     from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chat_to_user")
     to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chat_from_user")
     content = models.CharField(max_length=200)

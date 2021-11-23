@@ -25,6 +25,7 @@ def get_movie_list_page(request):
     # 기준 별로 movies_list를 뽑음.
     filter_by = request.GET.get('filter_by')
     filter_id = request.GET.get('filter_id')
+   
 
     # page 가져옴
     page = request.GET.get('page')
@@ -41,22 +42,18 @@ def get_movie_list_page(request):
     else:
         if not filter_id:
             return Response({'error': 'filter_id가 존재하지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
-        
+        filter_id_list = filter_id.split(',')
         if filter_by == 'actor':
-            actor = get_object_or_404(Actor, id=filter_id)
-            movies = get_list_or_404(actor.actor_movies.all().order_by(order))
-        
+            movies = get_list_or_404(Movie.objects.filter(actors__in=filter_id_list).order_by(order).distinct())
+
         elif filter_by == 'crew':
-            crew = get_object_or_404(Crew, id=filter_id)
-            movies = get_list_or_404(crew.crew_movies.all().order_by(order))
+            movies = get_list_or_404(Movie.objects.filter(crews__in=filter_id_list).order_by(order).distinct())
         
         elif filter_by == 'keyword':
-            keyword = get_object_or_404(Hashtag, id=filter_id)
-            movies = get_list_or_404(keyword.hashtag_movies.all().order_by(order))
+            movies = get_list_or_404(Movie.objects.filter(keyword__in=filter_id_list).order_by(order).distinct())
         
         elif filter_by == 'genre':
-            genre = get_object_or_404(Genre, id=filter_id)
-            movies = get_list_or_404(genre.genre_movies.all().order_by(order))
+            movies = get_list_or_404(Movie.objects.filter(genre__in=filter_id_list).order_by(order).distinct())
         
         else:
             return Response({'error' : 'fiter_by 값이 올바르지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
@@ -138,7 +135,6 @@ def search(request):
             'crews': CrewSerializer(crews, many=True).data,
             'genres': GenreSerializer(genres, many=True).data,
             'keywords': HashtagSerializer(keywords, many=True).data,
-
         }
         return data
 
@@ -164,7 +160,7 @@ def get_movie_detail(request, movie_pk):
     return Response(serializer.data)
 
 
-# 배우 리스트 요청
+# 출연 배우 리스트 요청
 @api_view(['GET'])
 def get_actor_list(request, movie_pk):
     movie = get_object_or_404(Movie, pk=movie_pk)   # 영화 객체에서 배우 id추출 후
@@ -195,6 +191,7 @@ def get_crew_list_all(request):
     crews = Crew.objects.all()
     serializer = CrewSerializer(crews, many=True)
     return Response(serializer.data)
+
 
 # 모든장르 리스트 요청
 @api_view(['GET'])    

@@ -17,6 +17,10 @@ class UserSerializer(serializers.ModelSerializer):
         class Meta:
             model = Genre
             fields = '__all__'
+    is_following = serializers.SerializerMethodField()
+
+    def get_is_following(self, obj):
+        return obj.followers.filter(id=self.context.get('user').id).exists()
 
     like_genres = GenreSerializer(many=True, read_only=True)
     personal_movies = MovieListSerializer(many=True, read_only=True)
@@ -26,7 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('pk', 'email', 'nickname', 'like_genres', 'personal_movies',
-                  'bookmark_movies', 'favorite_movies', 'profile_img')
+                  'bookmark_movies', 'favorite_movies', 'profile_img', 'is_following')
 
 
 class SignupSerializer(serializers.ModelSerializer):
