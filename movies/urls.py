@@ -13,7 +13,7 @@ urlpatterns = [
     path('actors/', views.get_actor_list_all),
     path('crews/', views.get_crew_list_all),
     path('genres/', views.get_genre_list_all),
-    path('hashtags/', views.get_hashtag_list_all),
+    path('keywords/', views.get_hashtag_list_all),
     path('<int:movie_pk>/reviews/', views.get_or_create_review),
     path('reviews/<int:review_pk>/', views.update_or_delete_review_or_get_or_create_comment_list),
     path('comments/<int:comment_pk>/', views.update_or_delete_comment),
