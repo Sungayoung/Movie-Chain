@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from movies.models import Movie
+from movies.models import Movie, Actor, Crew
 from .models import Chatting
 from .serializers.User import SignupSerializer, UserSerializer
 from movies.serializers.Movie import MovieListSerializer
@@ -151,6 +151,7 @@ def get_or_set_profile_image(request):
 
 @api_view(['GET', 'POST'])
 def follow(request):
+    # 팔로우 리스트 반환
     if request.method == 'GET':
         followers = request.user.followers.all()
         followings = request.user.followings.all()
@@ -167,17 +168,44 @@ def follow(request):
             'crews': serializer_crews.data
         }
         return Response(data, status=status.HTTP_200_OK)
+    
+    # 유저, 배우, 감독 팔로우
     elif request.method == 'POST':
         me = request.user
-        user_id = request.data.get('user_id')
-        print(user_id)
-        you = get_object_or_404(get_user_model(), id=user_id)
+        # 팔로우 할 종류
+        follow = request.data.get('follow')
+        if follow == 'user':
+            user_id = request.data.get('follow_id')
+            print(user_id)
+            you = get_object_or_404(get_user_model(), id=user_id)
 
-        if me.followings.filter(id=you.id).exists():
-            me.followings.remove(you)
-        else:
-            me.followings.add(you)
+            if me.followings.filter(id=you.id).exists():
+                me.followings.remove(you)
+            else:
+                me.followings.add(you)
+            
+            serializer = UserSerializer(you, context={'user': request.user})
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-        serializer = UserSerializer(you, context={'user': request.user})
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        elif follow == 'actor':
+            actor_id = request.data.get('follow_id')
+            actor = get_object_or_404(Actor, id=actor_id)
+            if me.actor_following.filter(id=actor_id).exists():
+                me.actor_following.remove(actor)
+            else:
+                me.actor_following.add(actor)
+            
+            serializer = ActorProfileSerializer(actor, context={'user': request.user})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        elif follow == 'crew':
+            crew_id = request.data.get('follow_id')
+            crew = get_object_or_404(Crew, id=crew_id)
+            if me.crew_following.filter(id=crew_id).exists():
+                me.crew_following.remove(crew)
+            else:
+                me.crew_following.add(crew)
+            
+            serializer = CrewProfileSerializer(crew, context={'user': request.user})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
