@@ -11,5 +11,5 @@ urlpatterns = [
     path('chatting/', views.chatting),
     path('profile/', views.get_or_set_profile_image),
     path('follow/', views.follow),
-    path('set-personal-movie/', views.set_personal_movies)
+    path('personal-movie/', views.set_personal_movies)
 ]

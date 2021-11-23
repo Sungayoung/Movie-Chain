@@ -1,14 +1,14 @@
 import requests
 from django.shortcuts import get_list_or_404, get_object_or_404
 from django.core.paginator import Paginator
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from .models import *
-from .serializers.Actor import ActorSerializer
+from .serializers.Actor import ActorSerializer, ActorProfileSerializer
 from .serializers.Comment import CommentSerializer
-from .serializers.Crew import CrewSerializer
+from .serializers.Crew import CrewSerializer, CrewProfileSerializer
 from .serializers.Movie import MovieListSerializer, MovieSerializer
 from .serializers.Review import ReviewSerializer
 from .serializers.Genre import GenreSerializer
@@ -159,6 +159,17 @@ def get_movie_detail(request, movie_pk):
     serializer = MovieSerializer(movie, context={'user': request.user})
     return Response(serializer.data)
 
+# 배우, 감독 상세페이지 요청
+@api_view(['GET'])
+def get_people_detail(request, people_pk):
+    actor = Actor.objects.filter(id=people_pk)
+    if len(actor):
+        serializer = ActorProfileSerializer(actor[0], context={'user': request.user})
+    else:
+        crew = Crew.objects.filter(id=people_pk)
+        serializer = CrewProfileSerializer(crew[0], context={'user': request.user})
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 # 출연 배우 리스트 요청
 @api_view(['GET'])

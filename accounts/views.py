@@ -4,10 +4,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from movies.models import Movie
+from movies.models import Movie, Actor, Crew
 from .models import Chatting
 from .serializers.User import SignupSerializer, UserSerializer
 from movies.serializers.Movie import MovieListSerializer
+from movies.serializers.Actor import ActorProfileSerializer
+from movies.serializers.Crew import CrewProfileSerializer
 from .serializers.Chatting import ChattingSerializer
 
 
@@ -44,11 +46,11 @@ def signup(request):
 
 @api_view(['PUT'])
 def update_user(request):
-    print(request.data)
     password = request.data.get('password')
-    
+    if not password:
+        request.data['password'] = request.user.password
     # 데이터 직렬화
-    serializer = SignupSerializer(instance=request.user, data=request.data)
+    serializer = SignupSerializer(instance=request.user, data=request.data, context={'user': request.user})
 
     if serializer.is_valid(raise_exception=True):
         user = serializer.save()
@@ -57,14 +59,26 @@ def update_user(request):
         user.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-@api_view(['POST', 'PUT'])
+@api_view(['POST', 'PUT', 'GET'])
 def set_personal_movies(request):
-    if request.method == 'POST':
+
+    # 같은 영화를 지정한 사람 리스트
+    if request.method == 'GET':
+        movieId = request.GET.get('movieId')
+        movie = get_object_or_404(Movie, id=movieId)
+        users = get_list_or_404(movie.personal_movie_users.all())
+        serializer = UserSerializer(users, many=True, context={'user': request.user})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    # 영화 지정
+    elif request.method == 'POST':
         movieId = request.data.get('movieId')
         movie = get_object_or_404(Movie, id=movieId)
         request.user.personal_movies.add(movie)
         serializer = MovieListSerializer(movie)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    # 영화 수정
     elif request.method == 'PUT':
         originId = request.data.get('originId')
         movieId = request.data.get('movieId')
@@ -73,7 +87,6 @@ def set_personal_movies(request):
         request.user.personal_movies.remove(origin_movie)
         request.user.personal_movies.add(movie)
         serializer = MovieListSerializer(origin_movie)
-        print(origin_movie)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['GET', 'POST', 'DELETE', 'PUT'])
@@ -141,18 +154,63 @@ def get_or_set_profile_image(request):
         serializer = UserSerializer(user, context={'user': request.user})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def follow(request):
-    me = request.user
-    user_id = request.data.get('user_id')
-    print(user_id)
-    you = get_object_or_404(get_user_model(), id=user_id)
-
-    if me.followings.filter(id=you.id).exists():
-        me.followings.remove(you)
-    else:
-        me.followings.add(you)
+    # 팔로우 리스트 반환
+    if request.method == 'GET':
+        followers = request.user.followers.all()
+        followings = request.user.followings.all()
+        actors = request.user.actor_following.all()
+        crews = request.user.crew_following.all()
+        serializer_followers = UserSerializer(followers, many=True, context={'user': request.user})
+        serializer_followings = UserSerializer(followings, many=True, context={'user': request.user})
+        serializer_actors = ActorProfileSerializer(actors, many=True, context={'user': request.user})
+        serializer_crews = CrewProfileSerializer(crews, many=True, context={'user': request.user})
+        data = {
+            'followers': serializer_followers.data,
+            'followings': serializer_followings.data,
+            'actors': serializer_actors.data,
+            'crews': serializer_crews.data
+        }
+        return Response(data, status=status.HTTP_200_OK)
     
-    serializer = UserSerializer(you, context={'user': request.user})
+    # 유저, 배우, 감독 팔로우
+    elif request.method == 'POST':
+        me = request.user
+        # 팔로우 할 종류
+        follow = request.data.get('follow')
+        if follow == 'user':
+            user_id = request.data.get('follow_id')
+            print(user_id)
+            you = get_object_or_404(get_user_model(), id=user_id)
 
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+            if me.followings.filter(id=you.id).exists():
+                me.followings.remove(you)
+            else:
+                me.followings.add(you)
+            
+            serializer = UserSerializer(you, context={'user': request.user})
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        elif follow == 'actor':
+            actor_id = request.data.get('follow_id')
+            actor = get_object_or_404(Actor, id=actor_id)
+            if me.actor_following.filter(id=actor_id).exists():
+                me.actor_following.remove(actor)
+            else:
+                me.actor_following.add(actor)
+            
+            serializer = ActorProfileSerializer(actor, context={'user': request.user})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        elif follow == 'crew':
+            crew_id = request.data.get('follow_id')
+            crew = get_object_or_404(Crew, id=crew_id)
+            if me.crew_following.filter(id=crew_id).exists():
+                me.crew_following.remove(crew)
+            else:
+                me.crew_following.add(crew)
+            
+            serializer = CrewProfileSerializer(crew, context={'user': request.user})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
