@@ -20,7 +20,7 @@ class OverwriteStorage(FileSystemStorage):
         return name
 
 class User(AbstractUser):
-    email = models.EmailField(blank=False)
+    email = models.EmailField(blank=False, unique=True)
     nickname = models.CharField(max_length=20, unique=True)
     birth = models.DateField(null=True)
     profile_img = ProcessedImageField(
