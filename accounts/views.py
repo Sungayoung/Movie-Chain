@@ -19,6 +19,7 @@ def signup(request):
     # client에서 비밀번호 정보 받아옴
     password = request.data.get('password')
     password_confirmation = request.data.get('passwordConfirmation')
+    valid_checked = request.data.get('valid_check')   # true/fales
 
     # 비밀번호 일치 확인
     if password != password_confirmation:
@@ -28,13 +29,14 @@ def signup(request):
     serializer = SignupSerializer(data=request.data)
 
     if serializer.is_valid(raise_exception=True):
-        user = serializer.save()
-        user.set_password(request.data.get('password'))
-        for gen in request.data.get('like_genres'):
-            user.like_genres.add(gen)
-        for mov in request.data.get('personal_movies'):
-            user.personal_movies.add(mov)
-        user.save()
+        if valid_checked:     # 유효성 검사확인된 것만 db에 저장
+            user = serializer.save()
+            user.set_password(request.data.get('password'))
+            for gen in request.data.get('like_genres'):
+                user.like_genres.add(gen)
+            for mov in request.data.get('personal_movies'):
+                user.personal_movies.add(mov)
+            user.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['POST', 'PUT'])
