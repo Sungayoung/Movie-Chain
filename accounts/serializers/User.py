@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from accounts.models import User
 from movies.models import Genre, Movie
 from django.contrib.auth import get_user_model
@@ -11,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     class MovieListSerializer(serializers.ModelSerializer):
         class Meta:
             model = Movie
-            fields = ('pk', 'title', 'overview', 'poster_path')
+            fields = ('id', 'title', 'overview', 'poster_path')
 
     class GenreSerializer(serializers.ModelSerializer):
         class Meta:
@@ -29,14 +30,29 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('pk', 'email', 'nickname', 'like_genres', 'personal_movies',
+        fields = ('id', 'username', 'email', 'nickname', 'like_genres', 'personal_movies', 'introduce_content',
                   'bookmark_movies', 'favorite_movies', 'profile_img', 'is_following')
 
 
 class SignupSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(write_only=True)
-
+    
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise ValidationError('이미 등록된 ID 입니다.')
+        return value
+    
+    def validate_nickname(self, value):
+        if User.objects.filter(nickname=value).exists():
+            raise ValidationError('이미 등록된 닉네임입니다.')
+        return value
+    
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise ValidationError('이미 등록된 이메일입니다.')
+        return value
+    
     class Meta:
         model = get_user_model()
         fields = ('username', 'email', 'nickname', 'password')
