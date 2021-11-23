@@ -39,11 +39,11 @@ def signup(request):
 
 @api_view(['PUT'])
 def update_user(request):
-    print(request.data)
     password = request.data.get('password')
-    
+    if not password:
+        request.data['password'] = request.user.password
     # 데이터 직렬화
-    serializer = SignupSerializer(instance=request.user, data=request.data)
+    serializer = SignupSerializer(instance=request.user, data=request.data, context={'user': request.user})
 
     if serializer.is_valid(raise_exception=True):
         user = serializer.save()
