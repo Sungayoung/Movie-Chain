@@ -120,8 +120,14 @@ def get_recommend_movie(request):
     genres = {}
     keywords = {}
     movie_list = Movie.objects.none()
+    for genre in me.like_genres.all():
+        if genres.get(genre.id):
+            genres[genre.id] += 1
+        else:
+            genres[genre.id] = 2
+    
     for movie in personal_movies:
-        users = movie.personal_movie_users.exclude(id=me.id).values
+        users = movie.personal_movie_users.exclude(id=me.id)
         
         # 나를 상징하는 영화에서 genre, keyword 저장
         for genre in movie.genre.all():
@@ -141,32 +147,35 @@ def get_recommend_movie(request):
     
     idx = 0
     # 추천하는 영화는 최대 36개
-    while len(movie_list) <= 36:
-        criteria = 0.9
-        movie = Movie.objects.get(order=idx)
-        
-        weight = 0
-        
-        for keyword in movie.keyword.all():
-            if keyword in keywords.keys():
-                weight = max(weight, keywords[keyword])
-        
-        for genre in movie.genre.all():
-            if genre in genres.keys():
-                weight = max(weight, genres[genre])
-        
-        if weight > 0:
-            criteria //= weight
-        
-        num = random.random()
-        if num > criteria:
-            movie_list.union(movie)
-        
-        idx += 1
-    
-    random.shuffle(movie_list)
-    serializer = MovieListSerializer(movie, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    if len(movie_list) < 36:
+        while len(movie_list) < 36:
+            criteria = 0.9
+            movie = Movie.objects.filter(order=idx)
+            weight = 0
+            
+            for keyword in movie[0].keyword.all():
+                if keyword in keywords.keys():
+                    weight = max(weight, keywords[keyword])
+            
+            for genre in movie[0].genre.all():
+                if genre in genres.keys():
+                    weight = max(weight, genres[genre])
+            
+            if weight > 0:
+                criteria //= weight
+            num = random.random()
+            if num > criteria:
+                movie_list |= movie
+            
+            idx += 1
+        serializer = MovieListSerializer(movie_list, many=True)
+        data = serializer.data
+        random.shuffle(data)
+    else:
+        serializer = MovieListSerializer(movie_list, many=True)
+        data = random.sample(serializer.data, 36)
+
+    return Response(data, status=status.HTTP_200_OK)
 
 
 # 영화 검색 기능
