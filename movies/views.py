@@ -20,7 +20,7 @@ from .serializers.Hashtag import HashtagSerializer
 def get_movie_list_page(request):
 
     # 정렬 기준 설정, 기본값 : id 큰 순서
-    order = request.GET.get('order_by') if request.GET.get('order_by') else '-id'
+    order = request.GET.get('order_by') if request.GET.get('order_by') else 'order'
 
     # 기준 별로 movies_list를 뽑음.
     filter_by = request.GET.get('filter_by')
@@ -71,7 +71,7 @@ def get_movie_list_page(request):
 def get_movie_list(request):
 
     # 정렬 기준 설정, 기본값 : id 큰 순서
-    order = request.GET.get('order_by') if request.GET.get('order_by') else '-id'
+    order = request.GET.get('order_by') if request.GET.get('order_by') else 'order'
 
     # 기준 별로 movies_list를 뽑음.
     filter_by = request.GET.get('filter_by')
@@ -139,15 +139,6 @@ def search(request):
         return data
 
     data = search_movie()
-
-    # 일단 보류
-    # # 검색결과가 없다면 TMDB에서 검색 진행 및 DB 저장 후 재 검색
-    # if not (len(data.get('movies')) or len(data.get('actors')) or len(data.get('crews'))):
-    #     _movie = GetMovie()
-    #     movie_list = _movie.save_search_result(query)
-    #     save_movie(movie_list, 'search')
-    #     data = search_movie()
-    
     
     return Response(data, status=status.HTTP_200_OK)
 
@@ -347,7 +338,7 @@ class GetMovie:
     def save_movie_info(self, page_num):
         result = []
         url = f'{self.BASE_URL}/movie/popular'
-        for i in range(32, page_num+1):
+        for i in range(1, page_num+1):
             params = {
                 'api_key': self.API_KEY,
                 'language': 'ko-KR',
@@ -405,6 +396,7 @@ class GetMovie:
         for video in res['results']:
             if video['site'] == 'YouTube':
                 return video['key']
+    
     def get_people_detail(self, people_id):
         url = f'{self.BASE_URL}/person/{people_id}'
         params = {
@@ -417,7 +409,7 @@ class GetMovie:
 
 def index(request):
     _movie = GetMovie()
-    movie_list = _movie.save_movie_info(50)
+    movie_list = _movie.save_movie_info(100)
     save_movie(movie_list, 'init')
 
 
@@ -438,7 +430,7 @@ def save_movie(info_list, save_type):
         movie_list = info_list
 
     # 전체 영화 리스트를 돌면서 세부사항 저장
-    for movie in movie_list:
+    for (idx, movie) in enumerate(movie_list):
         movie_id = movie['id']
         print(movie_id)
         release_date = movie.get('release_date')
@@ -446,12 +438,14 @@ def save_movie(info_list, save_type):
             release_date = '1111-11-11'
         m = Movie(
             id = movie_id,
+            order = idx,
             title = movie['title'],
             overview = movie['overview'],
             release_date = release_date,
             vote_count = movie['vote_count'],
             vote_average = movie['vote_average'],
             poster_path = movie['poster_path'],
+            backdrop_path = movie['backdrop_path'],
             video_id = _movie.get_video(movie_id)
         )
         m.save()

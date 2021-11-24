@@ -20,6 +20,6 @@ urlpatterns = [
     path('comments/<int:comment_pk>/', views.update_or_delete_comment),
     path('like-movie/', views.like_movie),
     path('bookmark-movie/', views.bookmark_movie),
-    path('like-review/', views.like_review)
-    # path('save-movie/', views.index)
+    path('like-review/', views.like_review),
+    path('save-movie/', views.index)
 ]

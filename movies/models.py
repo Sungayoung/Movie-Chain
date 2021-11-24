@@ -49,6 +49,7 @@ class Hashtag(models.Model):
 # 영화
 class Movie(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
+    order = models.IntegerField()
     title = models.TextField()
     overview = models.TextField()
     release_date = models.DateField()
@@ -58,6 +59,7 @@ class Movie(models.Model):
     actors = models.ManyToManyField(Actor, through='CharacterName', related_name='actor_movies')
     crews = models.ManyToManyField(Crew, related_name='crew_movies')
     keyword = models.ManyToManyField(Hashtag, related_name='hashtag_movies')
+    backdrop_path = models.TextField(null=True)
     poster_path = models.TextField(null=True)
     video_id = models.TextField(null=True)
 
