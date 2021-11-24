@@ -31,7 +31,7 @@ class User(AbstractUser):
         upload_to=profile_image_path,
         storage=OverwriteStorage()
     )
-    background_color = models.CharField(default="#2E4D54")
+    background_color = models.CharField(default="#2E4D54", max_length=20)
     introduce_content = models.CharField(max_length=200, null=True)
     followers = models.ManyToManyField('self', symmetrical=False, related_name='followings')
     blocked_user = models.ManyToManyField('self', symmetrical=False, related_name='blocking_user')
