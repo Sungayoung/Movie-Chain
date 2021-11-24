@@ -57,15 +57,29 @@ def update_user(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['POST', 'PUT', 'GET'])
-def set_personal_movies(request):
+def personal_movies(request):
 
     # 같은 영화를 지정한 사람 리스트
     if request.method == 'GET':
         movieId = request.GET.get('movieId')
         movie = get_object_or_404(Movie, id=movieId)
-        users = get_list_or_404(movie.personal_movie_users.all())
-        serializer = UserSerializer(users, many=True, context={'user': request.user})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        symbol = movie.personal_movie_users.exclude(id=request.user.id)
+        liked = movie.favorite_users.exclude(id=request.user.id)
+        saved = movie.bookmark_users.exclude(id=request.user.id)
+        # symbol = movie.personal_movie_users.all()
+        # liked = movie.favorite_users.all()
+        # saved = movie.bookmark_users.all()
+        serializer_symbol = UserSerializer(symbol, many=True, context={'user': request.user})
+        serializer_liked = UserSerializer(liked, many=True, context={'user': request.user})
+        serializer_saved = UserSerializer(saved, many=True, context={'user': request.user})
+        
+        data = {
+            'symbol': serializer_symbol.data,
+            'liked': serializer_liked.data,
+            'saved': serializer_saved.data,
+        }
+        return Response(data, status=status.HTTP_200_OK)
     
     # 영화 지정
     elif request.method == 'POST':
