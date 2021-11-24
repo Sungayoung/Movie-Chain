@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     class MovieListSerializer(serializers.ModelSerializer):
         class Meta:
             model = Movie
-            fields = ('id', 'title', 'overview', 'poster_path')
+            fields = ('id', 'title', 'overview', 'poster_path', 'backdrop_path')
 
     class GenreSerializer(serializers.ModelSerializer):
         class Meta:
@@ -31,7 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'nickname', 'like_genres', 'personal_movies', 'introduce_content',
-                  'bookmark_movies', 'favorite_movies', 'profile_img', 'is_following')
+                  'bookmark_movies', 'favorite_movies', 'profile_img', 'is_following', 'background_color')
 
 
 class SignupSerializer(serializers.ModelSerializer):

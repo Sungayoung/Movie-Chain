@@ -43,18 +43,24 @@ def signup(request):
 
 @api_view(['PUT'])
 def update_user(request):
-    password = request.data.get('password')
-    if not password:
-        request.data['password'] = request.user.password
-    # 데이터 직렬화
-    serializer = SignupSerializer(instance=request.user, data=request.data, context={'user': request.user})
-
-    if serializer.is_valid(raise_exception=True):
-        user = serializer.save()
-        if password:
-            user.set_password(request.data.get('password'))
+    if request.data.get('color'):
+        user = get_object_or_404(get_user_model(), id=request.user.id)
+        user.background_color = request.data.get('color')
         user.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'created': '색이 변경되었습니다'}, status=status.HTTP_201_CREATED)
+    else:
+        password = request.data.get('password')
+        if not password:
+            request.data['password'] = request.user.password
+        # 데이터 직렬화
+        serializer = SignupSerializer(instance=request.user, data=request.data, context={'user': request.user})
+
+        if serializer.is_valid(raise_exception=True):
+            user = serializer.save()
+            if password:
+                user.set_password(request.data.get('password'))
+            user.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['POST', 'PUT', 'GET'])
 def personal_movies(request):
