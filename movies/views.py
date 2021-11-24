@@ -13,6 +13,7 @@ from .serializers.Movie import MovieListSerializer, MovieSerializer
 from .serializers.Review import ReviewSerializer
 from .serializers.Genre import GenreSerializer
 from .serializers.Hashtag import HashtagSerializer
+import random
 
 # Create your views here.
 # 페이지별 영화목록
@@ -109,6 +110,64 @@ def get_movie_list(request):
         
     serializer = MovieListSerializer(movies, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# 영화 추천 알고리즘
+@api_view(['GET'])
+def get_recommend_movie(request):
+    me = request.user
+    personal_movies = me.personal_movies.all()
+    genres = {}
+    keywords = {}
+    movie_list = Movie.objects.none()
+    for movie in personal_movies:
+        users = movie.personal_movie_users.exclude(id=me.id).values
+        
+        # 나를 상징하는 영화에서 genre, keyword 저장
+        for genre in movie.genre.all():
+            if genres.get(genre.id):
+                genres[genre.id] += 1
+            else:
+                genres[genre.id] = 2
+        
+        for keyword in movie.keyword.all():
+            if keywords.get(keyword.id):
+                keywords[keyword.id] += 1
+            else:
+                keywords[keyword.id] = 2
+        
+        for user in users:
+            movie_list.union(user.favorite_movies.all())
+    
+    idx = 0
+    # 추천하는 영화는 최대 36개
+    while len(movie_list) <= 36:
+        criteria = 0.9
+        movie = Movie.objects.get(order=idx)
+        
+        weight = 0
+        
+        for keyword in movie.keyword.all():
+            if keyword in keywords.keys():
+                weight = max(weight, keywords[keyword])
+        
+        for genre in movie.genre.all():
+            if genre in genres.keys():
+                weight = max(weight, genres[genre])
+        
+        if weight > 0:
+            criteria //= weight
+        
+        num = random.random()
+        if num > criteria:
+            movie_list.union(movie)
+        
+        idx += 1
+    
+    random.shuffle(movie_list)
+    serializer = MovieListSerializer(movie, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 # 영화 검색 기능
 @api_view(['GET'])
