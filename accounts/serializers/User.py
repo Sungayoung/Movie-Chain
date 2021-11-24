@@ -71,4 +71,4 @@ class SignupSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = get_user_model()
-        fields = ('username', 'email', 'nickname', 'password')
+        fields = ('username', 'email', 'nickname', 'password', 'birth', 'introduce_content')

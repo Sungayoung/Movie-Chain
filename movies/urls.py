@@ -6,6 +6,7 @@ app_name='movies'
 urlpatterns = [
     path('', views.get_movie_list),
     path('page/', views.get_movie_list_page),
+    path('recommend/', views.get_recommend_movie),
     path('search/', views.search),
     path('<int:movie_pk>/', views.get_movie_detail),
     path('people/<int:people_pk>/', views.get_people_detail),

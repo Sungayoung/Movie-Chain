@@ -11,7 +11,7 @@ class ChattingSerializer(serializers.ModelSerializer):
 
         class Meta:
             model = User
-            fields = ('pk', 'email', 'nickname', 'profile_img')
+            fields = ('id', 'email', 'nickname', 'profile_img')
 
     from_user = UserSerializer()
     to_user = UserSerializer()
