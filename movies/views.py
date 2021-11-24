@@ -56,12 +56,15 @@ def get_movie_list_page(request):
             movies = get_list_or_404(Movie.objects.filter(genre__in=filter_id_list).order_by(order).distinct())
         
         else:
-            return Response({'error' : 'fiter_by 값이 올바르지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error' : 'filter_by 값이 올바르지 않습니다'}, status=status.HTTP_400_BAD_REQUEST)
 
     paginator = Paginator(movies, movie_cnt)
     movie_list = paginator.get_page(page)  
     total_page_cnt = paginator.num_pages + 1
-    serializer = MovieListSerializer(movie_list, many=True)
+    if request.user.is_authenticated:
+        serializer = MovieListSerializer(movie_list, many=True, context={'user': request.user})
+    else:
+        serializer = MovieListSerializer(movie_list, many=True)
     res = {'serialized_data':serializer.data, 'total_page_cnt':total_page_cnt}
     return Response(res, status=status.HTTP_200_OK)
 
