@@ -14,7 +14,10 @@ class ReviewSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     isLiked = serializers.SerializerMethodField()
     isWriter = serializers.SerializerMethodField()
-
+    commentCnt = serializers.SerializerMethodField()
+    def get_commentCnt(self, obj):
+        return obj.comment_set.count()
+    
     def get_isWriter(self, obj):
         return obj.user == self.context.get('user')
 
@@ -24,4 +27,4 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ('id', 'user', 'content', 'rank',
-                  'created_at', 'updated_at', 'isLiked', 'isWriter')
+                  'created_at', 'updated_at', 'isLiked', 'isWriter', 'commentCnt')
