@@ -6,10 +6,23 @@ from movies.models import Movie, Actor, Crew, Review, Genre, Hashtag, CharacterN
 
 # 전체 리스트를 보여주는 Serializer
 class MovieListSerializer(serializers.ModelSerializer):
+    isLiked = serializers.SerializerMethodField()
+    isSaved = serializers.SerializerMethodField()
+    def get_isLiked(self, obj):
+        try:
+            return obj.favorite_users.filter(id=self.context.get('user').id).exists()
+        except:
+            return False
+    
+    def get_isSaved(self, obj):
+        try:
+            return obj.bookmark_users.filter(id=self.context.get('user').id).exists()
+        except:
+            return False
 
     class Meta:
         model = Movie
-        fields = ('id', 'title', 'overview', 'poster_path')
+        fields = ('id', 'title', 'overview', 'poster_path', 'backdrop_path', 'isLiked', 'isSaved')
 
 # 상세 페이지를 보여주는 Serializer
 class MovieSerializer(serializers.ModelSerializer):
@@ -65,5 +78,5 @@ class MovieSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Movie
-        fields = ('id', 'title', 'overview', 'release_date', 'genre', 'likeCnt', 'saveCnt', 
+        fields = ('id', 'title', 'overview', 'release_date', 'genre', 'likeCnt', 'saveCnt', 'backdrop_path',
         'vote_count', 'vote_average', 'actors', 'crews', 'keyword', 'poster_path', 'video_id', 'isLiked', 'isSaved')
