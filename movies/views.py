@@ -122,7 +122,7 @@ def get_recommend_movie(request):
     personal_movies = me.personal_movies.all()
     genres = {}
     keywords = {}
-    movie_list = Movie.objects.none()
+    user_movie_list = Movie.objects.none()
     for genre in me.like_genres.all():
         if genres.get(genre.id):
             genres[genre.id] += 1
@@ -131,7 +131,6 @@ def get_recommend_movie(request):
     
     for movie in personal_movies:
         users = movie.personal_movie_users.exclude(id=me.id)
-        
         # 나를 상징하는 영화에서 genre, keyword 저장
         for genre in movie.genre.all():
             if genres.get(genre.id):
@@ -146,37 +145,37 @@ def get_recommend_movie(request):
                 keywords[keyword.id] = 2
         
         for user in users:
-            movie_list.union(user.favorite_movies.all())
+            user_movie_list |= user.favorite_movies.all()
     
     idx = 0
+    movie_list = Movie.objects.none()
     # 추천하는 영화는 최대 36개
-    if len(movie_list) < 36:
-        while len(movie_list) < 36:
-            criteria = 0.9
-            movie = Movie.objects.filter(order=idx)
-            weight = 0
-            
-            for keyword in movie[0].keyword.all():
-                if keyword in keywords.keys():
-                    weight = max(weight, keywords[keyword])
-            
-            for genre in movie[0].genre.all():
-                if genre in genres.keys():
-                    weight = max(weight, genres[genre])
-            
-            if weight > 0:
-                criteria //= weight
-            num = random.random()
-            if num > criteria:
-                movie_list |= movie
-            
-            idx += 1
-        serializer = MovieListSerializer(movie_list, many=True)
-        data = serializer.data
-        random.shuffle(data)
-    else:
-        serializer = MovieListSerializer(movie_list, many=True)
-        data = random.sample(serializer.data, 36)
+    while len(movie_list) < 36:
+        criteria = 0.9
+        movie = Movie.objects.filter(order=idx)
+        weight = 0
+        
+        for keyword in movie[0].keyword.all():
+            if keyword in keywords.keys():
+                weight = max(weight, keywords[keyword])
+        
+        for genre in movie[0].genre.all():
+            if genre in genres.keys():
+                weight = max(weight, genres[genre])
+        
+        if weight > 0:
+            criteria //= weight
+        num = random.random()
+        if num > criteria:
+            movie_list |= movie
+        
+        idx += 1
+    movie_list |= user_movie_list
+    serializer = MovieListSerializer(movie_list, many=True)
+    data = serializer.data
+    data = random.sample(data, 36)
+    random.shuffle(data)
+
 
     return Response(data, status=status.HTTP_200_OK)
 
