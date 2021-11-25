@@ -51,30 +51,30 @@ class SignupSerializer(serializers.ModelSerializer):
         try:
             me = self.context.get('user')
             if User.objects.filter(username=value).exclude(id=me.id).exists():
-                raise ValidationError('이미 등록된 ID 입니다.')
+                raise ValidationError(detail=['이미 등록된 ID 입니다.'])
         except:
             if User.objects.filter(username=value).exists():
-                raise ValidationError('이미 등록된 ID 입니다.')
+                raise ValidationError(detail=['이미 등록된 ID 입니다.'])
         return value
     
     def validate_nickname(self, value):
         try:
             me = self.context.get('user')
             if User.objects.filter(nickname=value).exclude(id=me.id).exists():
-                raise ValidationError('이미 등록된 닉네임입니다.')
+                raise ValidationError(detail=['이미 등록된 닉네임입니다.'])
         except:
             if User.objects.filter(nickname=value).exists():
-                raise ValidationError('이미 등록된 닉네임입니다.')
+                raise ValidationError(detail=['이미 등록된 닉네임입니다.'])
         return value
     
     def validate_email(self, value):
         try:
             me = self.context.get('user')
             if User.objects.filter(email=value).exclude(id=me.id).exists():
-                raise ValidationError('이미 등록된 이메일입니다.')
+                raise ValidationError(detail=['이미 등록된 이메일입니다.'])
         except:
             if User.objects.filter(email=value).exists():
-                raise ValidationError('이미 등록된 이메일입니다.')
+                raise ValidationError(detail=['이미 등록된 이메일입니다.'])
 
         return value
     
