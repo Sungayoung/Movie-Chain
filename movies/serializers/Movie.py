@@ -3,6 +3,7 @@ from django.db.models.query import QuerySet
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from movies.models import Movie, Actor, Crew, Review, Genre, Hashtag, CharacterName
+from accounts.models import User
 
 # 전체 리스트를 보여주는 Serializer
 class MovieListSerializer(serializers.ModelSerializer):
@@ -58,6 +59,7 @@ class MovieSerializer(serializers.ModelSerializer):
     isSaved = serializers.SerializerMethodField()
     likeCnt = serializers.SerializerMethodField()
     saveCnt = serializers.SerializerMethodField()
+    background_color = serializers.SerializerMethodField()
     def get_actors(self, obj):
         actors = self.ActorSerializer(obj.actors, many=True, read_only=True, context={'movie': obj})
         return actors.data
@@ -76,7 +78,10 @@ class MovieSerializer(serializers.ModelSerializer):
     def get_isSaved(self, obj):
         return obj.bookmark_users.filter(id=self.context.get('user').id).exists()
     
+    def get_background_color(self, obj):
+        return self.context.get('user').background_color
+    
     class Meta:
         model = Movie
         fields = ('id', 'title', 'overview', 'release_date', 'genre', 'likeCnt', 'saveCnt', 'backdrop_path',
-        'vote_count', 'vote_average', 'actors', 'crews', 'keyword', 'poster_path', 'video_id', 'isLiked', 'isSaved')
+        'vote_count', 'vote_average', 'actors', 'crews', 'keyword', 'poster_path', 'video_id', 'isLiked', 'isSaved', 'background_color')
